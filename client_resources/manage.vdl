@@ -1,0 +1,82 @@
+<!--
+   Insight project framework
+   
+   Framework for implementing Insight projects
+   
+   (c) Copyright 2020 Fair Isaac Corporation
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+     http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+   -->
+<vdl version="4.7">
+    <link rel="stylesheet" href="css/welcome_template.css">
+    <link rel="stylesheet" href="css/font.css">
+    <script type="text/javascript" src="js/projectframework.js"></script>
+    <script type="text/javascript" src="js/manage.js"></script>
+    <vdl-page>
+        <project-overlay></project-overlay>
+        <vdl-section id="welcome" layout="fluid">
+            <vdl-row>
+                <vdl-column size="7">
+                    <div id="test">
+                        <h1><span vdl-text="Project framework reference implementation"></span></h1><span vdl-text="A small framework that implements a project concept within a FICO Xpress Insight app. A project is a managed folder in the app root containing a &quot;project scenario&quot; which holds the common project configuration and can implement project scoped logic and operations. The framework provides UI elements and bindings to create, open, rename, delete, import, export, share and clone a project.
+The framework is provided as a reference example based on the &quot;campaign conversion&quot; product example. This version of the example shows how to separate out the data model into project and scenario pieces, and how to implement appropriate views for both.
+"></span></div>
+                    <!-- CONTROLS BEGIN -->
+                    <div class="col-sm-12 max-width-column">
+                        <h2 class="create-new-project"><span vdl-text="Add a Project"></span></h2><input placeholder="Enter a project name..." type="text" id="newProjectName" class="form-control" data-bind="textInput: projectframework.newProjectName">
+                        <div class="project-open-buttons button-holder">
+                            <div class="btn-group pull-right"><button vdl-attr="disabled: !projectframework.newProjectName()" id="createProjectButton" class="btn btn-primary create-project-btn" vdl-event="click:projectframework.createProject.bind(projectframework, $('#newProjectName').val())">
+                                    New Project
+                                </button><button vdl-attr="disabled: !projectframework.newProjectName()" id="importProjectButton" class="btn btn-primary import-project-btn" vdl-event="click:projectframework.importProject.bind(projectframework, $('#newProjectName').val())">
+                                    Import Project
+                                </button></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 max-width-column">
+                        <h2><span vdl-text="Open a project"></span></h2>
+                        <div class="current-projects" vdl-if="=projectframework.currentProjectFolders().length >= 1">
+                            <div id="project_table" class="projects-list">
+                                <div class="pull-right"><button class="btn btn-secondary" vdl-event="click:projectframework.refreshProjectList.bind(projectframework)">Refresh</button></div>
+                                <table class="table-main row-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Owner</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody vdl-repeat="=folder in projectframework.currentProjectFolders()">
+                                        <tr vdl-event="click:window.projectframework.openProject.bind(window.projectframework, folder.id)">
+                                            <td class="displayname" vdl-text="=folder.displayName"></td>
+                                            <td class="owner" vdl-text="=folder.ownerDisplayName"></td>
+                                            <td class="actions" vdl-event="click:function() {}, clickBubble: false">
+                                                <!-- need to use data-bind directly as vdl-event doesnt support clickBubble -->
+                                                <i class="icofont-ui-edit" data-bind="click:window.projectframework.renameProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Rename Project"></vdl-tooltip></i>
+                                                <i class="icofont-copy" data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Clone Project"></vdl-tooltip></i>
+                                                <i class="icofont-share-alt" data-bind="click:window.projectframework.shareProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Share Project"></vdl-tooltip></i>
+                                                <i class="icofont-upload-alt" data-bind="click:window.projectframework.exportProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Export Project"></vdl-tooltip></i>
+                                                <i class="icofont-ui-delete" data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Delete Project"></vdl-tooltip></i></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="current-projects" vdl-if="=projectframework.currentProjectFolders().length == 0"><span vdl-text="No existing projects."></span></div>
+                    </div>
+                    <!-- CONTROLS END -->
+                </vdl-column>
+                <vdl-column id="welcome_image_column" size="5">
+                    <div id="welcome_image"><img alt="fico" src="images/welcome.jpg"></div>
+                    <div id="filler"></div>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+    </vdl-page>
+</vdl>

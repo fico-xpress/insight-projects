@@ -1,0 +1,99 @@
+  <!--
+    Insight project framework
+
+    Framework for implementing Insight projects
+    
+    (c) Copyright 2020 Fair Isaac Corporation
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<vdl version="4.7">
+    <script type="text/javascript" src="js/projectframework.js"></script>
+    <script type="text/javascript" src="js/results.js"></script>
+
+    <vdl-page vdl-if="=!projectframework.shelfValid() && projectframework.shelfValidationMessage()">
+        <vdl-section layout="fluid" class="centered-alert">
+            <vdl-row>
+                <vdl-column size="12">
+                    <div class="alert alert-info">
+                        <p vdl-text="=projectframework.shelfValidationMessage().text"></p>
+                        <a 
+                            href="javascript: projectframework.goToManageView()" 
+                            vdl-if="=projectframework.shelfValidationMessage().showNav">
+                            Go to Manage Projects
+                        </a>
+                    </div>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+    </vdl-page>
+
+    <vdl-page vdl-if="=projectframework.shelfValid()">
+        <vdl-header>
+            <script>
+                var ACTION_DISPLAY_TEXT = {
+                    1: 'by SMS',
+                    2: 'by Mail',
+                    3: 'by Phone'
+                };
+
+                function colorResultActions(config) {
+                    var actionsColumn = config.columnOptions[5];
+                    if (actionsColumn) {
+                        actionsColumn.render = function(data, actionType) {
+                            var txt = (ACTION_DISPLAY_TEXT[data] != null) ? ACTION_DISPLAY_TEXT[data] : '';
+                            if (actionType === 'display') {
+                                return $('<span>')
+                                    .addClass('action_color_' + _.escape(data))
+                                    .text(txt)
+                                    .get(0)
+                                    .outerHTML;
+                            }
+                            return txt;
+                        };
+                    }
+                    return config;
+                }
+            </script>
+            <vdl-action-group name="action_group_run">
+                <vdl-action-execute scenario="=1"></vdl-action-execute>
+            </vdl-action-group>
+        </vdl-header>
+        <vdl-section class="centered-alert" layout="fluid" vdl-if="=projectframework.projectRevisionMessage()">
+            <vdl-row>
+                <vdl-column size="12">
+                    <div class="alert alert-info">
+                        <p vdl-text="=projectframework.projectRevisionMessage()"></p>
+                    </div>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+        <vdl-section heading="Results" layout="fluid">
+            <vdl-row vdl-if="=!scenarios[1] || !scenarios[1].summaryData.hasResultData">
+                <vdl-column size="3"><span vdl-text="Run the scenario to see the results."></span>
+                    <vdl-button vdl-event="click:actions.action_group_run" label="Run"></vdl-button>
+                </vdl-column>
+            </vdl-row>
+            <vdl-row vdl-if="=scenarios[1] && scenarios[1].summaryData.hasResultData">
+                <vdl-column size="12">
+                    <vdl-table page-mode="paged" page-size="20" modifier="=colorResultActions" show-filter="true">
+                        <vdl-table-column set="CUSTOMERS" width="50px"></vdl-table-column>
+                        <vdl-table-column entity="CustomerName" scenario="=0"></vdl-table-column>
+                        <vdl-table-column entity="ConversionValue" width="15%" scenario="=0"></vdl-table-column>
+                        <vdl-table-column entity="CustomerPropensity" heading="=channel.label" vdl-repeat="=channel in scenario.entities.CHANNELS" width="15%" scenario="=0">
+                            <vdl-index-filter set="CHANNELS" value="=channel.value"></vdl-index-filter>
+                        </vdl-table-column>
+                        <vdl-table-column entity="Action" width="15%" class="action_column" scenario="=1"></vdl-table-column>
+                    </vdl-table>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+    </vdl-page>
+</vdl>

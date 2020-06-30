@@ -1,0 +1,112 @@
+(!
+    Insight project framework
+
+    Framework for implementing Insight projects
+    
+    (c) Copyright 2020 Fair Isaac Corporation
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+!)
+  
+  !@insight.scentypes.PROJECT
+  !@mc.flush
+  
+  ! private variables
+  declarations
+    InputSheet: insightattachment
+  end-declarations
+
+  ! Project schema
+  public declarations
+   !@insight.transform.labels.entity GoalLabels
+    Goals: range                            ! 1 - MaximizeValue
+                                            ! 2 - MaximizePropensity
+                                            ! 3 - MaximizeBalanced
+    
+    GoalLabels: array(Goals) of string     ! Goal labels in the UI
+    
+    !@insight.hidden true
+    RatioBalance:integer
+      
+    ! Sets
+    
+    !@insight.alias Customer
+    CUSTOMERS=1..NC                            ! Customers
+    
+    !@insight.alias Channel
+    !@insight.transform.labels.entity ChannelName
+    CHANNELS=1..NH                             ! Channels
+    
+    !@insight.alias Channel.Name
+    !@insight.hidden true
+    ChannelName:array(CHANNELS) of string      ! Channel namespace
+    
+    ! Customer related information
+    
+    !@insight.alias Customer Name
+    CustomerName:array(CUSTOMERS) of string    ! Customer name
+    
+    !@insight.alias Customer.Address
+    !@insight.hidden true
+    CustomerAddress:array(CUSTOMERS) of string ! Customer address
+    
+    !@insight.hidden true
+    Tier:array(CUSTOMERS) of integer           ! Customer tier
+    
+    !@insight.alias Value
+    ConversionValue:array(CUSTOMERS) of real   ! Value of the customer conversion
+    
+    !@insight.alias Analytics.Propensity
+    CustomerPropensity:array(CUSTOMERS,CHANNELS) of real ! Customer channel propensity
+    
+    !@insight.hidden true
+    !@insight.update.afterexecution true
+    ProjectRevision: integer
+  end-declarations
+  
+  ! exec modes
+  public procedure projectload
+    declarations
+      DataRange:string
+    end-declarations
+
+    GoalLabels:: ["Maximize Value", "Maximize Propensity", "Maximize Balanced"]
+
+    ChannelName::["SMS", "Mail", "Phone"]
+
+    insightgetattachbytag("input-sheet", InputSheet)
+    if insightattachstatus<>INSIGHT_ATTACH_OK then
+      writeln("Failed to fetch input data spreadsheet attachment")
+      exit(1)
+    end-if
+
+    DataRange:="[A2:G"+(NC+2)+"]" ! Read the first NC rows of the spreadsheet data
+    initializations from "mmsheet.xlsx:skiph;"+InputSheet.filename
+      CustomerName as DataRange+"(ID,Name)"
+      CustomerAddress as DataRange+"(ID,Address)"
+      ConversionValue as DataRange+"(ID,Value)"
+      CustomerPropensity as "partndx;"+DataRange+"(ID,SMS,Mail,Phone)"
+    end-initializations
+
+    forall(c in CUSTOMERS) do
+      Tier(c):=if(ConversionValue(c)<250,1,if(ConversionValue(c)<351,2,3))
+    end-do
+    
+    ProjectRevision := integer(round((2^30*random)+0.5))
+  end-procedure
+  
+  public procedure projectrun
+    ! if we are going to modify updateable input data 
+    !   then we need to increment the project revision
+    !   ProjectRevision += 1
+      
+    ! do nothing else
+    insightpopulate
+  end-procedure

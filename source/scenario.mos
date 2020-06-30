@@ -1,0 +1,279 @@
+(!
+    Insight project framework
+
+    Framework for implementing Insight projects
+    
+    (c) Copyright 2020 Fair Isaac Corporation
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+!)
+  
+  !@insight.scentypes.SCENARIO
+  !@mc.flush
+    
+  ! Scenario schema
+  public declarations
+    ! Budget
+    Budget:real                                ! Dollars available to spend
+      
+    Goal: integer                           ! Selected optimization goal
+    
+    ! Channel related settings
+    !@insight.alias Channel.Cost
+    ChannelCost:array(CHANNELS) of real        ! Channel cost per contact
+    
+    !@insight.alias Channel.Probability
+    !@insight.hidden true
+    ChannelProb:array(CHANNELS) of real        ! Channel baseline probability of enrollment
+    
+    !@insight.alias Channel.Capacity
+    ChannelCapacity:array(CHANNELS) of real    ! Channel capacity
+    
+    !@insight.hidden true
+    ChannelCapacity_violation_limit:array(CHANNELS) of real ! Channel capacity constraint violation limit
+    
+    !@insight.hidden true
+    ChannelCapacity_violation_cost:array(CHANNELS) of real ! Channel capacity constraint violation cost
+    
+    !@insight.hidden true
+    Budget_violation_limit: real               ! Budget constraint violation limit
+    
+    !@insight.hidden true
+    Budget_violation_cost: real                ! Budget constraint violation cost
+    
+    ! Decision variables
+    metrictotalcost:mpvar
+    
+    !@insight.alias Cost
+    metriccostperchannel:array(CHANNELS) of mpvar
+    
+    !@insight.alias Contacts
+    metriccontactperchannel: array(CHANNELS) of mpvar
+    
+    !@insight.manage ignore
+    contact:array(CUSTOMERS,CHANNELS) of mpvar
+    
+    ! Constraints
+    
+    !@insight.hidden true
+    OnceContact:array(CUSTOMERS) of linctr  ! Customer can be contacted once
+    
+    !@insight.alias Constraint.Capacity
+    CtrCapacity:array(CHANNELS) of linctr   ! Channel contact capacity limit
+    
+    !@insight.hidden true
+    CtrTotCost:linctr                       ! Total cost limit
+    
+    !@insight.alias Constraint.Budget
+    CtrBudget:linctr                        ! Total bugget limit
+    
+    ! Objective functions
+    
+    !@insight.hidden true
+    ObjectivePropensity:linctr              ! Total propensity
+    
+    !@insight.hidden true
+    ObjectiveValue:linctr                   ! Total conversion value
+    
+    ! *** Results *** !
+    
+    !@insight.alias KPI.Average Propensity
+    !@insight.manage result
+    AveragePropensity: real                 ! Average propensity
+    
+    !@insight.alias KPI.Average Value
+    !@insight.manage result
+    AverageValue: real                      ! Average conversion value
+    
+    !@insight.alias KPI.Average Cost
+    !@insight.manage result
+    AverageCost: real                       ! Average cost
+    
+    (!@insight.
+      @manage result
+      @descr Decision on which channel to use for a given customer
+      @transform.labels.entity ChannelName
+    !)
+    Action: array(CUSTOMERS) of integer     ! Suggested decisions
+    ActionName: array(CUSTOMERS) of string
+  end-declarations
+  
+  ! helper functions
+  function getprojectname: text
+    declarations
+      temp: text
+    end-declarations
+    
+    ! which is also the name of the parent folder
+    temp := pathsplit(SYS_DIR, getparam("insight_scenario_path"))
+    returned := pathsplit(SYS_FNAME, temp)
+    
+    if returned = "" then
+      writeln("Error, scenario does not have a valid project folder parent");
+      exit(-1)
+    end-if
+  end-function
+  
+  function getprojectfolderpath: text
+    declarations
+      temp: text
+    end-declarations
+    
+    returned := pathsplit(SYS_DIR, getparam("insight_scenario_path"))
+  end-function
+  
+  function getprojectscenariopath: text
+    declarations
+      temp: text
+    end-declarations
+    
+    returned := pathsplit(SYS_DIR, getparam("insight_scenario_path")) + "/" + getprojectname
+  end-function
+  
+  function getprojectscenarioid : text
+    declarations
+      item: insightiteminfo
+    end-declarations
+    item := insightgetiteminfo(getprojectscenariopath)
+    returned := item.id
+    
+    if returned = "" then
+      writeln("Error, could not get id for project folder");
+      exit(-1)
+    end-if
+  end-function
+  
+  ! exec modes
+  public procedure scenarioload
+    declarations
+      DataRange:string
+    end-declarations
+
+    Goal:=1
+    RatioBalance:=0
+    Budget:=1000
+    Budget_violation_limit:=100
+    Budget_violation_cost:=1
+
+    ChannelProb::[0.12,0.16,.25]
+    ChannelCost::[0.5,1.2,3.00]
+    ChannelCapacity::[100,50,40]
+    ChannelCapacity_violation_limit::[0,10,5]
+    ChannelCapacity_violation_cost::[1, 1,1]
+    
+    ProjectRevision := 0
+  end-procedure
+  
+  public procedure scenariorun
+    declarations
+      projectname: text
+      projectid: text
+    end-declarations
+    
+    ! locate the project
+    projectname := getprojectname
+    writeln("Project folder is " + projectname)
+    ! get its id
+    projectid := getprojectscenarioid
+    writeln("Project id is " + projectid)
+  
+    ! the scenario level data
+    insightpopulate
+
+    ! get the project level data
+    initializations from "mminsight.scenariodata:" + projectid
+      CustomerName
+      CustomerAddress
+      Tier
+      ConversionValue
+      CustomerPropensity
+    end-initializations
+    
+    ! record the revision of the project we are calculating results against
+    writeln("Project revision for this scenario was " + ProjectRevision)
+    initializations from "mminsight.scenariodata:" + projectid
+      ProjectRevision  
+    end-initializations
+    writeln("Project revision for this scenario is now " + ProjectRevision)
+  
+    forall(c in CUSTOMERS,h in CHANNELS) do
+      contact(c,h) is_binary
+    end-do
+
+    forall(c in CUSTOMERS) do
+      ! only contact through one channel
+      OnceContact(c):=sum(h in CHANNELS) contact(c,h)=1
+    end-do
+
+    forall(h in CHANNELS) do
+      CtrCapacity(h):=sum(c in CUSTOMERS) contact(c,h)<=ChannelCapacity(h)/100*NC
+      metriccontactperchannel(h) = sum(c in CUSTOMERS) contact(c,h)
+    end-do
+
+    forall(h in CHANNELS) do
+      metriccostperchannel(h) = sum(c in CUSTOMERS) contact(c,h)*ChannelCost(h)
+    end-do
+
+    CtrTotCost:=metrictotalcost=sum(c in CUSTOMERS,h in CHANNELS) contact(c,h)*ChannelCost(h)
+    CtrBudget:=metrictotalcost<=Budget
+
+    ObjectivePropensity:=sum(c in CUSTOMERS,h in CHANNELS) contact(c,h)*CustomerPropensity(c,h)
+    ObjectiveValue:=sum(c in CUSTOMERS,h in CHANNELS) contact(c,h)*CustomerPropensity(c,h)*ConversionValue(c)
+
+    setparam("xprs_verbose",true)
+    setparam("xprs_miprelstop",0.001)
+
+    if Goal=1 then
+      insightmaximize(XPRS_BAR, ObjectiveValue)      !20
+    elif Goal=2 then
+      insightmaximize(XPRS_BAR, ObjectivePropensity) !0.002
+    elif Goal=3 then
+      insightmaximize(XPRS_BAR, ObjectiveValue/20*RatioBalance/100+ObjectivePropensity*500*(100-RatioBalance)/100)
+    else
+      writeln("Error unrecognised goal " + Goal)
+    end-if
+    
+    ! *** Solution processing **** !
+
+    AveragePropensity:=1/NC*sum(c in CUSTOMERS,h in CHANNELS) contact(c,h).sol*CustomerPropensity(c,h)
+    AverageValue:=1/NC*sum(c in CUSTOMERS,h in CHANNELS) contact(c,h).sol*CustomerPropensity(c,h)*ConversionValue(c)
+    AverageCost:=1/NC*sum(c in CUSTOMERS,h in CHANNELS) contact(c,h).sol*ChannelCost(h)
+  
+    forall(c in CUSTOMERS, ch in CHANNELS) do
+      if (contact(c,ch).sol=1) then
+        Action(c):=ch
+        ActionName(c):=ChannelName(ch)
+      end-if
+    end-do
+  
+    initializations to "mmsheet.csv:results.csv"
+      ActionName as "grow;[A1:B1]"
+    end-initializations
+  
+    insightputscenattach("results.csv")
+    insightsetscenattachhidden("results.csv", true)
+    insightsetscenattachdesc("results.csv", "A hidden CSV file containing the optimal action for each customer")
+
+    insightgetattachbytag("input-sheet", InputSheet)
+    if insightattachstatus<>INSIGHT_ATTACH_OK then
+      writeln("Failed to fetch input data spreadsheet attachment")
+    else
+      fmove(InputSheet.filename, "results.xlsx")
+
+      initializations to "mmsheet.xlsx:results.xlsx"
+        ActionName as "grow;Results"
+      end-initializations
+
+      insightputscenattach("results.xlsx")
+      insightsetscenattachdesc("results.xlsx", "A spreadsheet containing the optimal action for each customer")
+      insightsetscenattachtags("results.xlsx", ["result-sheet"])
+    end-if
+  end-procedure
+  

@@ -1,0 +1,94 @@
+/*
+    Insight project framework
+
+    Framework for implementing Insight projects
+    
+    (c) Copyright 2020 Fair Isaac Corporation
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
+
+@import "projectframework.css";
+
+td.action_column {
+    padding: 0px !important;
+}
+
+.action_column span {
+    padding: 4px 5px;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}
+
+.action_column span.action_color_1 {
+    /* SMS */
+    background-color: #b1d34a;
+}
+
+.action_column span.action_color_2 {
+    /* Mail */
+    background-color: #00addc;
+}
+
+.action_column span.action_color_3 {
+    /* Phone */
+    background-color: #ffc20e;
+}
+
+/* custom styling for introduction page links */
+ul#main-links
+{
+    margin-top: 50px;
+}
+
+ul#main-links li,
+ul#table-view-links li {
+    list-style-type: none;
+}
+
+li.box {
+    display: inline-block;
+    width: 172px;
+    float: left;
+    text-align: left;
+    margin-bottom: 9px;
+}
+
+li.box a {
+    display: inline-block;
+    width: 162px;
+    height: 180px;
+    border: 1px solid #BBBBBB;
+    padding: 9px;
+    color: #00addc;
+}
+li.box a h5 {
+    margin-top: 1px;
+    border-bottom: 1px solid #CCC;
+    padding-bottom: 5px;
+    margin-bottom: 9px;
+}
+li.box a p {
+    text-align: left;
+    padding: 3px;
+    color: #222244;
+}
+
+li.box a:hover {
+    background-color: #193d61;
+    text-decoration: none;
+}
+li.box a:hover h5, li.box a:hover p {
+    color: white;
+    text-decoration: none;
+}
+
+

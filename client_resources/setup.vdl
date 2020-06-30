@@ -1,0 +1,80 @@
+  <!--
+    Insight project framework
+
+    Framework for implementing Insight projects
+    
+    (c) Copyright 2020 Fair Isaac Corporation
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<vdl version="4.7">
+    <script type="text/javascript" src="js/projectframework.js"></script>
+    <script type="text/javascript" src="js/setup.js"></script>
+
+    <vdl-page vdl-if="=!projectframework.shelfValid() && projectframework.shelfValidationMessage()">
+        <vdl-section layout="fluid" class="centered-alert">
+            <vdl-row>
+                <vdl-column size="12">
+                    <div class="alert alert-info">
+                        <p vdl-text="=projectframework.shelfValidationMessage().text"></p>
+                        <a 
+                            href="javascript: projectframework.goToManageView()" 
+                            vdl-if="=projectframework.shelfValidationMessage().showNav">
+                            Go to Manage Projects
+                        </a>
+                    </div>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+    </vdl-page>
+
+    <vdl-page vdl-if="=projectframework.shelfValid()">
+        <vdl-header>
+            <style>
+                img {
+                    border: 1px solid grey;
+                }
+            </style>
+            <vdl-action-group name="runModel">
+                <vdl-action-execute scenario="=1"></vdl-action-execute>
+            </vdl-action-group>
+            </vdl-header>
+            <vdl-section class="centered-alert" layout="fluid" vdl-if="=projectframework.projectRevisionMessage()">
+                <vdl-row>
+                    <vdl-column size="12">
+                        <div class="alert alert-info">
+                            <p vdl-text="=projectframework.projectRevisionMessage()"></p>
+                        </div>
+                    </vdl-column>
+                </vdl-row>
+            </vdl-section>
+            <vdl-section heading="Global">
+                <vdl-row>
+                    <vdl-column size="3">
+                        <vdl-form>
+                            <vdl-field label="Total Budget $" entity="Budget" size="6" label-size="6" scenario="=1"></vdl-field>
+                        </vdl-form>
+                    </vdl-column>
+                </vdl-row>
+            </vdl-section>
+            <vdl-section layout="fluid" heading="Channels">
+                <vdl-row>
+                    <vdl-column class="channel" vdl-repeat="=channel in scenario.entities.CHANNELS" size="3" offset="1" heading="=scenario.entities.ChannelName(channel.value).value + ' channel'">
+                        <img vdl-attr="={src: 'images/' + channel.label + 'Icon.jpg'}" height="70%" width="100%">
+                        <vdl-form>
+                            <vdl-field entity="ChannelCost" indices="=channel.value" scenario="=1"></vdl-field>
+                            <vdl-field entity="ChannelCapacity" indices="=channel.value" scenario="=1"></vdl-field>
+                        </vdl-form>
+                    </vdl-column>
+                </vdl-row>
+            </vdl-section>
+        
+    </vdl-page>
+</vdl>

@@ -1,0 +1,85 @@
+  <!--
+    Insight project framework
+
+    Framework for implementing Insight projects
+    
+    (c) Copyright 2020 Fair Isaac Corporation
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<vdl version="4.7">
+    <script type="text/javascript" src="js/projectframework.js"></script>
+    <script type="text/javascript" src="js/report.js"></script>
+
+     <vdl-page vdl-if="=!projectframework.shelfValid() && projectframework.shelfValidationMessage()">
+        <vdl-section layout="fluid" class="centered-alert">
+            <vdl-row>
+                <vdl-column size="12">
+                    <div class="alert alert-info">
+                        <p vdl-text="=projectframework.shelfValidationMessage().text"></p>
+                        <a 
+                            href="javascript: projectframework.goToManageView()" 
+                            vdl-if="=projectframework.shelfValidationMessage().showNav">
+                            Go to Manage Projects
+                        </a>
+                    </div>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+    </vdl-page>
+
+    <vdl-preload entities="CHANNELS,ChannelName,metriccontactperchannel,metriccostperchannel,AveragePropensity,AverageValue,AverageCost" scenarios="all"></vdl-preload>
+    <vdl-page vdl-if="=projectframework.shelfValid()">
+        <vdl-header>
+            <style>
+                .model-status-error {
+                    padding-top: 5px;
+                    text-align: center;
+                    font-size: 1.2em;
+                }
+            </style>
+            <script>
+                var view = insight.getView();
+
+                function getFormattedEntity(name, value) {
+                    var entity = view.getApp().getModelSchema().getEntity(name);
+                    return insight.Formatter.formatEntityValue(entity, value);
+                }
+
+                function isModelOk(scenarioSummaryData) {
+                    return scenarioSummaryData.hasResultData && scenarioSummaryData.modelStatus === insight.enums.ModelStatus.OK;
+                }
+            </script>
+        </vdl-header>
+        <vdl-section class="centered-alert" layout="fluid" vdl-if="=projectframework.projectRevisionMessage()">
+            <vdl-row>
+                <vdl-column size="12">
+                    <div class="alert alert-info">
+                        <p vdl-text="=projectframework.projectRevisionMessage()"></p>
+                    </div>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+        <vdl-section heading="Scenario Comparison" layout="fluid">
+            <vdl-row>
+                <vdl-column size="6" heading="Contacts per channel">
+                    <vdl-chart>
+                        <vdl-chart-series entity="metriccontactperchannel" vdl-repeat="=s,i in scenarios" scenario="=i" vdl-if="=s.props.scenarioType !== 'PROJECT'"></vdl-chart-series>
+                    </vdl-chart>
+                </vdl-column>
+                <vdl-column size="6" heading="Cost per channel">
+                    <vdl-chart>
+                        <vdl-chart-series entity="metriccostperchannel" scenario="=i" vdl-if="=s.props.scenarioType !== 'PROJECT'" vdl-repeat="=s,i in scenarios"></vdl-chart-series>
+                    </vdl-chart>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+    </vdl-page>
+</vdl>

@@ -1,0 +1,156 @@
+<!--
+    Insight project framework
+
+    Framework for implementing Insight projects
+    
+    (c) Copyright 2020 Fair Isaac Corporation
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<vdl version="4.7">
+    <script type="text/javascript" src="js/projectframework.js"></script>
+    <script type="text/javascript" src="js/data.js"></script>
+    
+    <vdl-page vdl-if="=!projectframework.shelfValid() && projectframework.shelfValidationMessage()">
+        <vdl-section layout="fluid" class="centered-alert">
+            <vdl-row>
+                <vdl-column size="12">
+                    <div class="alert alert-info">
+                        <p vdl-text="=projectframework.shelfValidationMessage().text"></p>
+                        <a 
+                            href="javascript: projectframework.goToManageView()" 
+                            vdl-if="=projectframework.shelfValidationMessage().showNav">
+                            Go to Manage Projects
+                        </a>
+                    </div>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+    </vdl-page>
+
+    <vdl-page vdl-if="=projectframework.shelfValid()">
+        <vdl-header>
+            <style>
+                .if-scenario-loaded {
+                    min-height: 398px;
+                }
+            </style>
+            <vdl-action-group name="loadModel">
+                <vdl-action-execute mode="LOAD"></vdl-action-execute>
+            </vdl-action-group>
+            <vdl-action-group name="downloadTemplate">
+                <vdl-action-attachment-download scope="app" tag="input-sheet"></vdl-action-attachment-download>
+            </vdl-action-group>
+            <vdl-action-group name="downloadAttachment">
+                <vdl-action-attachment-download tag="input-sheet"></vdl-action-attachment-download>
+            </vdl-action-group>
+            <vdl-action-group name="uploadSpreadsheet">
+                <vdl-action-attachment-upload tag="input-sheet" message="Choose a spreadsheet from which to load the account data"></vdl-action-attachment-upload>
+            </vdl-action-group>
+            <vdl-action-group name="editAttachment">
+                <vdl-action-attachment-edit-properties tag="input-sheet" field="description"></vdl-action-attachment-edit-properties>
+            </vdl-action-group>
+        </vdl-header>
+        <vdl-section heading="Account Data" layout="fluid">
+            <vdl-row>
+                <vdl-column size="8">
+                    <p><span vdl-text="
+                        The account data for the optimization model is loaded from an Excel spreadsheet. A default
+                        spreadsheet is provided as an app attachment, but you can attach an alternative spreadsheet
+                        to the scenario which will be used instead.
+                    "></span></p>
+                    <p><span vdl-text="
+                        You can then specify how many accounts to read from the spreadsheet, and load the data into
+                        the model.
+                    "></span></p>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+        <vdl-section heading="1. Provide Account Data Spreadsheet" heading-level="4" layout="fluid">
+            <vdl-row>
+                <vdl-column size="6">
+                    <p><span vdl-text="
+                        Download the default account data spreadsheet.
+                    "></span></p>
+                    <vdl-button label="Download template" vdl-event="click:actions.downloadTemplate"></vdl-button>
+                </vdl-column>
+                <vdl-column size="6">
+                    <p><span vdl-text="
+                        Attach an alternative spreadsheet to the scenario.
+                    "></span></p>
+                    <vdl-button label="Upload spreadsheet" vdl-event="click:actions.uploadSpreadsheet"></vdl-button>
+                </vdl-column>
+            </vdl-row>
+            <vdl-row>
+                <vdl-column>
+                    <p><span vdl-text="If you have attached a spreadsheet to the scenario, you can review it below."></span></p>
+                    <table class="table-main">
+                        <thead>
+                            <tr>
+                                <th width="300px">Summary</th>
+                                <th width="300px">Filename</th>
+                                <th width="300px">Description</th>
+                                <th width="100px">Download</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr vdl-repeat="=attachment in scenario.attachments.byTagName('input-sheet')">
+                                <td vdl-text="=scenario.attachments.tags('input-sheet').description"></td>
+                                <td vdl-text="=attachment.filename"></td>
+                                <td><span vdl-text="=attachment.description"></span>
+                                    <vdl-button label="Edit" vdl-event="click:actions.editAttachment"></vdl-button>
+                                </td>
+                                <td>
+                                    <vdl-button label="Download" vdl-event="click:actions.downloadAttachment"></vdl-button>
+                                </td>
+                            </tr>
+                            <tr vdl-if="=scenario.attachments.byTagName('input-sheet').length === 0">
+                                <td colspan="4">No input sheet supplied for this scenario; the default sheet from the app will be used.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+        <vdl-section heading="2. Load Account Data" heading-level="4" layout="fluid">
+            <vdl-row>
+                <vdl-column>
+                    <p><span vdl-text="Specify the number of customer accounts to load from the spreadsheet, then click the Load
+                        button."></span></p>
+                    <vdl-form>
+                        <vdl-field label="Number of Accounts" parameter="NC" size="2" label-size="2">
+                            <vdl-validate pass="=value > 0 && value <= 1000">You must specify a number between 1 and 1000
+                            </vdl-validate>
+                            <vdl-validate pass="=String(value).match(/^\d+$/)">You must specify a whole number
+                            </vdl-validate>
+                        </vdl-field>
+                        <vdl-button label="LOAD" vdl-event="click:actions.loadModel"></vdl-button>
+                    </vdl-form>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+        <vdl-section heading="3. Review/edit Account Data" layout="fluid" heading-level="4">
+            <vdl-row class="if-scenario-loaded" data-scenario="0" style="display: none">
+                <vdl-column size="12">
+                    <p><span vdl-text="The following accounts have been created:"></span></p>
+                    <vdl-table page-mode="paged" page-size="10" show-filter="true" width="100%">
+                        <vdl-table-column set="CUSTOMERS" width="50"></vdl-table-column>
+                        <vdl-table-column entity="CustomerName" width="270" editable="true"></vdl-table-column>
+                        <vdl-table-column entity="ConversionValue" width="60" editable="true"></vdl-table-column>
+                        <vdl-table-column entity="CustomerPropensity" heading="=channel.label" vdl-repeat="=channel in scenario.entities.CHANNELS" width="60" editable="true">
+                            <vdl-index-filter set="CHANNELS" value="=channel.value"></vdl-index-filter>
+                        </vdl-table-column>
+                    </vdl-table>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+    </vdl-page>
+</vdl>
