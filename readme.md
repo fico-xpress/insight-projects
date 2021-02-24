@@ -1,8 +1,8 @@
 # Insight Project framework
 A small framework that implements a project concept within a FICO Xpress Insight app.
 
-### Pre-requisities
-FICO Xpress Insight 4.53 or later
+### Pre-requisites
+FICO Xpress Insight 4.55 or later
 
 ### Concept
 A project is a managed folder in the app root containing a "project scenario" which holds the common project configuration and can implement project scoped logic and operations. The framework provides UI elements and bindings to create, open, rename, delete, import, export, share and clone a project. The framework also implements an optional revision check between project and scenarios with a message shown if a scenario on the shelf has results older than the latest change to the project configuration.
