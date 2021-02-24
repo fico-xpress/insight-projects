@@ -97,7 +97,8 @@ describe("Project framework", function () {
                     LOAD: 'LOAD',
                     RUN: 'RUN'
                 }
-            }
+            },
+            resolveRestEndpoint: jasmine.createSpy().and.callFake(_.identity)
         };
         window.VDL = function () {
         };
@@ -107,6 +108,7 @@ describe("Project framework", function () {
         spyOn(project, "_initShelfValidation");
         spyOn(project, "_initProjectRevisionTracking");
         project.init();
+        expect(project._initShelfValidation).toHaveBeenCalled();
     });
     afterEach(function () {
         jasmine.Ajax.uninstall();
@@ -1605,7 +1607,6 @@ describe("Project framework", function () {
 
             expect(project._getProjects).toHaveBeenCalled();
             expect(project._initShelfValidation).toHaveBeenCalled();
-            expect(project._initProjectRevisionTracking).toHaveBeenCalled();
             expect(window.VDL).toHaveBeenCalled();
         });
     });

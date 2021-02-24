@@ -97,11 +97,11 @@ ProjectFramework.prototype = {
 
         var projectFolder = self._getProjectFolderObject(projectFolderId);
         self.dom.showConfirmationDialog(
-            "rename", 
-            "Rename Project", 
-            "", 
-            "", 
-            self._handleRenameConfirmation.bind(self, projectFolderId),  
+            "rename",
+            "Rename Project",
+            "",
+            "",
+            self._handleRenameConfirmation.bind(self, projectFolderId),
             projectFolder.displayName
         );
     },
@@ -110,10 +110,10 @@ ProjectFramework.prototype = {
     deleteProject: function (projectFolderId) {
         var self = this;
         self.dom.showConfirmationDialog(
-            "delete", 
-            "Delete Project", 
-            "Are you sure you wish to delete this project?", 
-            "This operation cannot be undone.", 
+            "delete",
+            "Delete Project",
+            "Are you sure you wish to delete this project?",
+            "This operation cannot be undone.",
             self._deleteProject.bind(self, projectFolderId)
         );
     },
@@ -124,7 +124,7 @@ ProjectFramework.prototype = {
         var projectFolder = self._getProjectFolderObject(projectFolderId);
 
         self.dom.showConfirmationDialog(
-            "clone", 
+            "clone",
             "Clone Project",
             "",
             'Clone Project will clone the project settings only. If you wish to clone your scenarios as well, export the project and then re-import it.',
@@ -137,9 +137,9 @@ ProjectFramework.prototype = {
     exportProject: function (projectFolderId) {
         var self = this;
         self.dom.showConfirmationDialog(
-            "export", 
-            "Export Project", 
-            "Are you sure you wish to export this project?", 
+            "export",
+            "Export Project",
+            "Are you sure you wish to export this project?",
             'This action will export the project settings and all scenarios.',
             self._exportProject.bind(self, projectFolderId));
     },
@@ -187,7 +187,6 @@ ProjectFramework.prototype = {
                 var folderTargetShare = projectFolder.shareStatus;
                 var projectTargetShare = projectScenario.shareStatus;
                 var currentShare = "";
-                var currentShare = "";
 
                 if (folderTargetShare == "PRIVATE" && projectTargetShare == "PRIVATE")
                     currentShare = "SHARE_PRIVATE";
@@ -201,11 +200,11 @@ ProjectFramework.prototype = {
                     currentShare = "SHARE_UNRECOGNISED";
 
                 self.dom.showConfirmationDialog(
-                    "share", 
-                    "Share Project", 
+                    "share",
+                    "Share Project",
                     "",
-                    "", 
-                    self._handleShareConfirmation.bind(self, projectFolderId), 
+                    "",
+                    self._handleShareConfirmation.bind(self, projectFolderId),
                     currentShare
                     );
             });
@@ -225,7 +224,7 @@ ProjectFramework.prototype = {
     _restRequest: function (path, type, data, dataType) {
         var self = this;
         var request = {
-            url: self.BASE_REST_ENDPOINT + path,
+            url: insight.resolveRestEndpoint(self.BASE_REST_ENDPOINT + path),
             type: type,
             data: data,
             dataType: dataType === undefined ? 'JSON' : dataType,
@@ -274,10 +273,10 @@ ProjectFramework.prototype = {
                         var users={};
                         for(var i=0;i<response.length;i++)
                             users[response[i]._data.username] = response[i]._data.displayName;
-                        
+
                         for(var i=0;i<folders.length;i++)
                             folders[i].ownerDisplayName = users[folders[i].ownerId];
-                
+
                         // flush the existing list
                         self.currentProjectFolders([]);
                         return self.currentProjectFolders(folders);
@@ -418,7 +417,7 @@ ProjectFramework.prototype = {
         var self=this;
         var projectFolder = self._getProjectFolderObject(projectFolderId);
         self.view.showInfoMessage('Exporting project \'' + projectFolder.displayName + '\'...');
-        self.dom.downloadFile(self.BASE_REST_ENDPOINT + 'folder/' + projectFolder.id + '/export');
+        self.dom.downloadFile(insight.resolveRestEndpoint(self.BASE_REST_ENDPOINT + 'folder/' + projectFolder.id + '/export'));
     },
     _deleteProject: function (projectFolderId) {
         var self = this;
@@ -691,7 +690,7 @@ ProjectFramework.prototype = {
         ));
 
         var request = {
-            url: this.BASE_REST_ENDPOINT + 'scenario',
+            url: insight.resolveRestEndpoint(this.BASE_REST_ENDPOINT + 'scenario'),
             data: formData,
             cache: false,
             context: {
@@ -853,7 +852,7 @@ ProjectFramework.prototype = {
                         var $renderedInput = modal.find('input');
                         var renderedInput = $renderedInput[0];
                         var affirmativeButton = modal.find('.affirmative');
-    
+
                         $renderedInput.on('change keyup', function (event) {
                             if (!self.validateModalInputState(event.originalEvent)) {
                                 modal.find('.error-state').text('You must specify a project name');
@@ -863,20 +862,20 @@ ProjectFramework.prototype = {
                                 affirmativeButton.prop('disabled', false);
                             }
                         });
-    
+
                         _.defer(function () {
                             renderedInput.focus();
                             renderedInput.setSelectionRange(0, renderedInput.value.length);
                         });
                     });
-    
+
                     //Prevent enter from submitting form, but press ok instead
                     var formEle = $('#modal-form');
                     formEle.on('submit', function (event) {
                         event.preventDefault();
                         $('[data-bb-handler="ok"]').click()
                     });
-                    
+
                     $("body").find('.dialogValue').attr('value', currentValue);
                     break;
                 default:
@@ -1045,7 +1044,7 @@ ProjectFramework.prototype = {
     },
     _initShelfValidation: function () {
         var self=this;
-        
+
         // if the shelf if empty, validation failed
         if (self.view.getScenarioIds().length == 0) {
             self.shelfValidationMessage({
@@ -1066,7 +1065,7 @@ ProjectFramework.prototype = {
                     else if (self.config.viewType.toLowerCase() == "scenario")
                         msg = self.validateShelf('scenario', scenarios);
                     // else no validation required
-                    
+
                     if (msg) {
                         self.shelfValidationMessage({text: msg});
                         self.shelfValid(false);
@@ -1074,6 +1073,8 @@ ProjectFramework.prototype = {
                     else {
                         self.shelfValidationMessage();
                         self.shelfValid(true);
+
+                        self._initProjectRevisionTracking();
                     }
                 })
                 .start();
@@ -1162,16 +1163,13 @@ ProjectFramework.prototype = {
         VDL('project-overlay', {
             tag: 'project-overlay',
             attributes: [],
-            template: '<div data-bind="visible: projectframework.showLoadingOverlay" class="project-loading-overlay"><img class="project-loading-img" src="/insight/distrib/insight-4.7/images/ajax_loader_109.gif" width="109" height="109"/><span style="display: block;" class="msg" data-bind="text: loadingOverlayMessage"></span><span>Please do not navigate away from the page</span></div>',
+            template: '<div data-bind="visible: projectframework.showLoadingOverlay" class="project-loading-overlay"><img class="project-loading-img" src="../../../../distrib/insight-4.7/images/ajax_loader_109.gif" width="109" height="109"/><span style="display: block;" class="msg" data-bind="text: loadingOverlayMessage"></span><span>Please do not navigate away from the page</span></div>',
             createViewModel: function (params) {
                 return new OverlayExtension(params);
             }
         });
 
         self._initShelfValidation();
-        // revision tracking only if the shelf is valid
-        if (self.shelfValid())
-            self._initProjectRevisionTracking();
     }
 };
 
@@ -1185,7 +1183,7 @@ function ProjectFramework(userconfig) {
             projectScenarioType: "PROJECT",             // custom scenario type id for project scenario type
             defaultView: '',                            // the view that Open Project navigates to
             manageView: 'Manage',                       // id of the project management view
-            viewType: "",                               // type of the current view. project | scenario. Any other value means neither 
+            viewType: "",                               // type of the current view. project | scenario. Any other value means neither
             projectEntities: [],                        // list of project entities that impact the project revision for the current view. "all" or [entity names]
             projectRevisionEntity: "ProjectRevision"    // the entity storing the project revision
         }
@@ -1236,8 +1234,3 @@ OverlayExtension.prototype = {
         this.loadingOverlayMessage(message);
     }
 };
-
-
-
-
-
