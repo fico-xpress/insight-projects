@@ -1597,12 +1597,23 @@ describe("Project framework", function () {
         });
     });
     describe("_init()", function () {
-        it("Should set up subscriptions, get list of existing projects and register custom overlay extension", function () {
+        it("Should set up subscriptions and register custom overlay extension", function () {
+            spyOn(project.currentProjectFolders, "subscribe");
+            spyOn(window, "VDL");
+            spyOn(project, "shelfValid").and.returnValue(true);
+
+            project._init();
+
+            expect(project._initShelfValidation).toHaveBeenCalled();
+            expect(window.VDL).toHaveBeenCalled();
+        });
+        it("Should get list of existing projects for a management view type", function () {
             spyOn(project.currentProjectFolders, "subscribe");
             spyOn(project, "_getProjects");
             spyOn(window, "VDL");
             spyOn(project, "shelfValid").and.returnValue(true);
 
+            project.config.viewType = "manage";
             project._init();
 
             expect(project._getProjects).toHaveBeenCalled();
