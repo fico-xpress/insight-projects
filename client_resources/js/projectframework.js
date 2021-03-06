@@ -284,7 +284,6 @@ ProjectFramework.prototype = {
             })
             .catch(function () {
                 self.view.showErrorMessage('Unexpected error fetching projects list');
-                return Promise.reject();
             });
     },
     _moveToProject: function (projectScenario) {
@@ -1156,8 +1155,9 @@ ProjectFramework.prototype = {
         self.appId = self.app.getId();
         self.schema = self.app.getModelSchema();
 
-        // fetch the list of project folders
-        self._getProjects();
+        // fetch the list of project folders for a management view
+        if (self.config.viewType == "manage")
+            self._getProjects();
 
         /* global VDL */
         VDL('project-overlay', {
