@@ -18,7 +18,7 @@
 model "Campaign Conversion with projects"
   options noimplicit
   uses "mminsight"
-  namespace xreflect
+  uses "mmreflect"
 
   parameters
     NC=1000           ! Number of customers
@@ -38,6 +38,6 @@ model "Campaign Conversion with projects"
   thisscenario:= insightgetiteminfo(getparam("insight_scenario_path"))
 
   ! dispatch based on scenario type and exec mode
-  xreflect~callproc(string(tolower(thisscenario.type + insightgetmode)))
+  callproc(string(tolower(thisscenario.type + insightgetmode)))
   
 end-model

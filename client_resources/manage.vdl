@@ -14,7 +14,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
    -->
-<vdl version="4.7">
+<vdl version="4.8">
     <link rel="stylesheet" href="css/welcome_template.css">
     <link rel="stylesheet" href="css/font.css">
     <script type="text/javascript" src="js/projectframework.js"></script>
@@ -32,11 +32,23 @@ The framework is provided as a reference example based on the &quot;campaign con
                     <div class="col-sm-12 max-width-column">
                         <h2 class="create-new-project"><span vdl-text="Add a Project"></span></h2><input placeholder="Enter a project name..." type="text" id="newProjectName" class="form-control" data-bind="textInput: projectframework.newProjectName">
                         <div class="project-open-buttons button-holder">
-                            <div class="btn-group pull-right"><button vdl-attr="disabled: !projectframework.newProjectName()" id="createProjectButton" class="btn btn-primary create-project-btn" vdl-event="click:projectframework.createProject.bind(projectframework, $('#newProjectName').val())">
+                            <div class="btn-group pull-right">
+                                <button vdl-attr="disabled: !projectframework.newProjectName()" id="createProjectButton" class="btn btn-primary create-project-btn" vdl-event="click:projectframework.createProject.bind(projectframework, $('#newProjectName').val())">
                                     New Project
-                                </button><button vdl-attr="disabled: !projectframework.newProjectName()" id="importProjectButton" class="btn btn-primary import-project-btn" vdl-event="click:projectframework.importProject.bind(projectframework, $('#newProjectName').val())">
-                                    Import Project
-                                </button></div>
+                                </button>
+                                <!-- insight v4 button -->
+                                <button vdl-if="=projectframework.apiVersion() == 1" vdl-attr="disabled: !projectframework.newProjectName()" id="importProjectButton" class="btn btn-primary import-project-btn" vdl-event="click:projectframework.importProject.bind(projectframework, $('#newProjectName').val(), 'UPLOAD')">
+                                    Import Via Upload
+                                </button>
+                                
+                                <!-- insight v5 button -->
+                                <button vdl-if="=projectframework.apiVersion() >= 2" vdl-attr="disabled: !projectframework.newProjectName()" id="importProjectButton" class="btn btn-primary import-project-btn" vdl-event="click:projectframework.importProject.bind(projectframework, $('#newProjectName').val(), 'UPLOAD')">
+                                    Import Via Upload
+                                </button>
+                                <button vdl-if="=projectframework.apiVersion() >=2 " vdl-attr="disabled: !projectframework.newProjectName()" id="importFromServerProjectButton" class="btn btn-primary import-project-btn" vdl-event="click:projectframework.importProject.bind(projectframework, $('#newProjectName').val(), 'SERVER')">
+                                    Import From Server
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="col-sm-12 max-width-column">
@@ -54,14 +66,14 @@ The framework is provided as a reference example based on the &quot;campaign con
                                     </thead>
                                     <tbody vdl-repeat="=folder in projectframework.currentProjectFolders()">
                                         <tr vdl-event="click:window.projectframework.openProject.bind(window.projectframework, folder.id)">
-                                            <td class="displayname" vdl-text="=folder.displayName"></td>
-                                            <td class="owner" vdl-text="=folder.ownerDisplayName"></td>
+                                            <td class="displayname" vdl-text="=folder.name"></td>
+                                            <td class="owner" vdl-text="=folder.owner.name"></td>
                                             <td class="actions" vdl-event="click:function() {}, clickBubble: false">
                                                 <!-- need to use data-bind directly as vdl-event doesnt support clickBubble -->
                                                 <i class="icofont-ui-edit" data-bind="click:window.projectframework.renameProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Rename Project"></vdl-tooltip></i>
                                                 <i class="icofont-copy" data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Clone Project"></vdl-tooltip></i>
                                                 <i class="icofont-share-alt" data-bind="click:window.projectframework.shareProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Share Project"></vdl-tooltip></i>
-                                                <i class="icofont-upload-alt" data-bind="click:window.projectframework.exportProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Export Project"></vdl-tooltip></i>
+                                                <i class="icofont-upload-alt" data-bind="click:window.projectframework.exportProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Export Project to Server"></vdl-tooltip></i>
                                                 <i class="icofont-ui-delete" data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Delete Project"></vdl-tooltip></i></td>
                                         </tr>
                                     </tbody>

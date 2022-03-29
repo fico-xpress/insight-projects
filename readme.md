@@ -2,7 +2,8 @@
 A small framework that implements a project concept within a FICO Xpress Insight app.
 
 ### Pre-requisites
-FICO Xpress Insight 4.55 or later
+FICO Xpress Insight 4 support: version 4.59 or later
+FICO Xpress Insight 5 support: version 5.3 or later
 
 ### Concept
 A project is a managed folder in the app root containing a "project scenario" which holds the common project configuration and can implement project scoped logic and operations. The framework provides UI elements and bindings to create, open, rename, delete, import, export, share and clone a project. The framework also implements an optional revision check between project and scenarios with a message shown if a scenario on the shelf has results older than the latest change to the project configuration.
@@ -41,7 +42,7 @@ Include the framework files in the management view.
 
 manage.vdl:
 ```html
- <vdl version="4.7">
+ <vdl version="4.8">
     <link rel="stylesheet" href="css/projectframework.css">
     <link rel="stylesheet" href="css/font.css">
     <script type="text/javascript" src="js/projectframework.js"></script>
@@ -67,7 +68,7 @@ Make sure this javascript file is included in the VDL view file.
 
 manage.vdl:
 ```html
- <vdl version="4.7">
+ <vdl version="4.8">
     <link rel="stylesheet" href="css/projectframework.css">
     <link rel="stylesheet" href="css/font.css">
     <script type="text/javascript" src="js/projectframework.js"></script>
@@ -98,7 +99,7 @@ To add a view that shows/edits the project configuration, include the following 
 
 data.vdl:
 ```html
- <vdl version="4.7">
+ <vdl version="4.8">
     <link rel="stylesheet" href="css/projectframework.css">
     <script type="text/javascript" src="js/projectframework.js"></script>
 ```
@@ -145,7 +146,7 @@ To add a view that shows/edits the standard scenarios on the shelf (may optional
 
 setup.vdl:
 ```html
- <vdl version="4.7">
+ <vdl version="4.8">
     <link rel="stylesheet" href="css/projectframework.css">
     <script type="text/javascript" src="js/projectframework.js"></script>
 ```
@@ -287,7 +288,7 @@ Font icons used in this example:
     https://icofont.com/license/  
 
 All other content:  
-(c) Copyright 2020 Fair Isaac Corporation  
+(c) Copyright 2022 Fair Isaac Corporation  
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

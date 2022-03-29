@@ -5,9 +5,7 @@
 		<scenario-type id="PROJECT" name="Project">
 			<state-icons unloaded="images/project-1.png" unloaded-hover="images/project-1.png" loaded="images/project-1.png" loaded-hover="images/project-1.png" executed="images/project-1.png" executed-hover="images/project-1.png" />
 			<shelf-pill-style background-color-active="rgba(255,255,255,0)" background-color-inactive="rgba(255,255,255,0)" border-color="#A4A4A4" text-color="#FFFFFF" text-color-hover="#FFFFFF" />
-
 			<actions load="allow" view-runlog="allow" view-properties-dialog="allow" edit-owner="allow" edit-share-status="allow" open-attachments-dialog="allow" />
-
 		</scenario-type>
 		<scenario-type id="SCENARIO" name="Scenario">
 		</scenario-type>
@@ -32,7 +30,7 @@
 
 	<client>
 		<view-group title="Manage">
-			<vdl-view title="Manage Projects" id="Manage" default="true" path="manage.vdl" empty-selection-default="true" />
+			<vdl-view title="Manage Projects" id="Manage" default="true" path="manage.vdl" empty-selection-default="true" requires-scenarios-loaded="false" />
 		</view-group>
 		<view-group title="Project">
 			<vdl-view title="Data" id="Data" requires-scenarios-loaded="false" empty-selection-default="true" path="data.vdl" />
@@ -44,3 +42,4 @@
 		</view-group>
 	</client>
 </model-companion>
+
