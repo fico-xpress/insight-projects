@@ -1065,9 +1065,10 @@ ProjectFramework.prototype = {
         else if (self.projectRevision != scenario.getScalar(self.config.projectRevisionEntity))
             // another user or mosel caused it to change so store it
             self.projectRevision = scenario.getScalar(self.config.projectRevisionEntity);
-        else {
-            // our current user caused it to change
-            // increment the project revision if we get a notified of a change
+        else if (scenario.isEditable()) {
+            // dont increment revision on a notify caused by execution status change. use editable flag to determine its a data change event
+            
+            // our current user caused the data to change, so increment the project revision
             var dataChange = scenario.modify();
             self.projectRevision++;
             dataChange.setScalar(self.config.projectRevisionEntity, self.projectRevision);
