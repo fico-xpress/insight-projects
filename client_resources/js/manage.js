@@ -18,7 +18,8 @@
 var projectframework = new ProjectFramework(
     {
         viewType: "manage",  // does not require project or scenario validation
-        defaultView: 'Data' // the view that Open Project navigates to
+        defaultView: 'Data', // the view that Open Project navigates to
+        projectAttributes: [] // no additional entities to blend with project attributes
     }
 );
 insight.ready(function() {

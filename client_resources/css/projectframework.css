@@ -35,55 +35,6 @@
 .project-loading-overlay .loading-overlay-controls {
     margin-top: 30px;
 }
-
-.current-projects {
-    margin-bottom: 0px;
-}
-
-.max-width-column {
-    max-width: 800px !important;
-    padding-left: 0px;
-    margin-left: 15px;
-}
-.projects-list {
-    margin-top: -30px;
-}
-
-#newProjectName {
-    margin-bottom: 6px;
-}
-#project_table table {
-    width: 100%;
-}
-#project_table td {
-    vertical-align: middle;
-}
-#project_table td, #project_table th {
-    padding-bottom: 4px;
-    padding-top: 8px;
-}
-#project_table tbody tr {
-    cursor:pointer;
-}
-#project_table .owner {
-    width: 25%;
-}
-#project_table .actions {
-    white-space: nowrap;
-    width: 150px;
-    text-align: center !important;
-}
-#project_table .actions i {
-    font-size: 16px;
-    color: #00629B;
-    padding: 4px;
-}
-#project_table .actions i:hover {
-    font-size: 16px;
-    color: white;
-    background-color: #00629B;
-    padding: 4px;
-}
 .centered-alert .alert {
     margin: 10px auto 0px auto !important;
     max-width: 80%;

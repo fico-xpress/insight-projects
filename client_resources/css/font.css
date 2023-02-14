@@ -1,307 +1,1619 @@
-/*! 
-* @package IcoFont 
-* @version 1.0.1 
-* @author IcoFont https://icofont.com 
-* @copyright Copyright (c) 2015 - 2020 IcoFont 
-* @license - https://icofont.com/license/
-*/
-
-@font-face
-{
- 
-  font-family: "IcoFont";
-font-weight: normal;
-font-style: "Regular";
-src: url("./fonts/icofont.woff2") format("woff2"),
-url("./fonts/icofont.woff") format("woff");
+@font-face {
+  font-family: 'FICO-Icons';
+  src:  url('fonts/FICO-Icons.eot?szpb5u');
+  src:  url('fonts/FICO-Icons.eot?szpb5u#iefix') format('embedded-opentype'),
+    url('fonts/FICO-Icons.ttf?szpb5u') format('truetype'),
+    url('fonts/FICO-Icons.woff?szpb5u') format('woff'),
+    url('fonts/FICO-Icons.svg?szpb5u#FICO-Icons') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
 }
 
-[class^="icofont-"], [class*=" icofont-"]
-{
-  font-family: 'IcoFont' !important;
+[data-icon]:before {
+  font-family: 'FICO-Icons' !important;
+  content: attr(data-icon);
   speak: none;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+[class^="fico-icon-"], [class*=" fico-icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'FICO-Icons' !important;
+  speak: never;
   font-style: normal;
   font-weight: normal;
   font-variant: normal;
   text-transform: none;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
   line-height: 1;
-/* Better Font Rendering =========== */
-  -webkit-font-feature-settings: "liga";
+
+  /* Better Font Rendering =========== */
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.icofont-ui-edit:before
-{
-  content: "\ec55";
+.fico-icon-pencil:before {
+  content: "\e9dc";
 }
-
-.icofont-copy:before
-{
-  content: "\edea";
+.fico-icon-pencil-cancel:before {
+  content: "\e9de";
 }
-
-.icofont-share-alt:before
-{
-  content: "\efe3";
+.fico-icon-pencil-boxed:before {
+  content: "\e9dd";
 }
-
-.icofont-upload-alt:before
-{
-  content: "\f01c";
+.fico-icon-info:before {
+  content: "\e99f";
 }
-
-.icofont-ui-delete:before
-{
-  content: "\ec53";
+.fico-icon-info-solid:before {
+  content: "\e9a0";
 }
-
-.icofont-xs
-{
-  font-size: .5em;
+.fico-icon-home:before {
+  content: "\e99d";
 }
-
-.icofont-sm
-{
-  font-size: .75em;
+.fico-icon-warning:before {
+  content: "\ea5d";
 }
-
-.icofont-md
-{
-  font-size: 1.25em;
+.fico-icon-warning-solid:before {
+  content: "\ea5e";
 }
-
-.icofont-lg
-{
-  font-size: 1.5em;
+.fico-icon-notification:before {
+  content: "\e9c7";
 }
-
-.icofont-1x
-{
-  font-size: 1em;
+.fico-icon-notification-solid:before {
+  content: "\e9c8";
 }
-
-.icofont-2x
-{
-  font-size: 2em;
+.fico-icon-question-solid:before {
+  content: "\e9ee";
 }
-
-.icofont-3x
-{
-  font-size: 3em;
+.fico-icon-question:before {
+  content: "\e9ed";
 }
-
-.icofont-4x
-{
-  font-size: 4em;
+.fico-icon-bell:before {
+  content: "\e911";
 }
-
-.icofont-5x
-{
-  font-size: 5em;
+.fico-icon-chevron-circle-up:before {
+  content: "\ea82";
 }
-
-.icofont-6x
-{
-  font-size: 6em;
+.fico-icon-chevron-circle-right:before {
+  content: "\ea83";
 }
-
-.icofont-7x
-{
-  font-size: 7em;
+.fico-icon-chevron-circle-down:before {
+  content: "\ea84";
 }
-
-.icofont-8x
-{
-  font-size: 8em;
+.fico-icon-chevron-circle-left:before {
+  content: "\ea85";
 }
-
-.icofont-9x
-{
-  font-size: 9em;
+.fico-icon-chevron-circle-up-solid:before {
+  content: "\ea07";
 }
-
-.icofont-10x
-{
-  font-size: 10em;
+.fico-icon-chevron-circle-right-solid:before {
+  content: "\ea06";
 }
-
-.icofont-fw
-{
-  text-align: center;
-  width: 1.25em;
+.fico-icon-chevron-circle-down-solid:before {
+  content: "\ea04";
 }
-
-.icofont-ul
-{
-  list-style-type: none;
-  padding-left: 0;
-  margin-left: 0;
+.fico-icon-chevron-circle-left-solid:before {
+  content: "\ea05";
 }
-
-.icofont-ul > li
-{
-  position: relative;
-  line-height: 2em;
+.fico-icon-chevron-up:before {
+  content: "\ea0b";
 }
-
-.icofont-ul > li .icofont
-{
-  display: inline-block;
-  vertical-align: middle;
+.fico-icon-chevron-right:before {
+  content: "\ea0a";
 }
-
-.icofont-border
-{
-  border: solid 0.08em #f1f1f1;
-  border-radius: .1em;
-  padding: .2em .25em .15em;
+.fico-icon-chevron-down:before {
+  content: "\ea08";
 }
-
-.icofont-pull-left
-{
-  float: left;
+.fico-icon-chevron-left:before {
+  content: "\ea09";
 }
-
-.icofont-pull-right
-{
-  float: right;
+.fico-icon-arrow-bold-up:before {
+  content: "\ea0f";
 }
-
-.icofont.icofont-pull-left
-{
-  margin-right: .3em;
+.fico-icon-arrow-bold-right:before {
+  content: "\ea0e";
 }
-
-.icofont.icofont-pull-right
-{
-  margin-left: .3em;
+.fico-icon-arrow-bold-down:before {
+  content: "\ea0c";
 }
-
-.icofont-spin
-{
-  -webkit-animation: icofont-spin 2s infinite linear;
-  animation: icofont-spin 2s infinite linear;
-  display: inline-block;
+.fico-icon-arrow-bold-left:before {
+  content: "\ea0d";
 }
-
-.icofont-pulse
-{
-  -webkit-animation: icofont-spin 1s infinite steps(8);
-  animation: icofont-spin 1s infinite steps(8);
-  display: inline-block;
+.fico-icon-arrow-circle-up:before {
+  content: "\ea13";
 }
-
-@-webkit-keyframes icofont-spin
-{
-  0%
-  {
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-
-  100%
-  {
-    -webkit-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
+.fico-icon-arrow-circle-right:before {
+  content: "\ea12";
 }
-
-@keyframes icofont-spin
-{
-  0%
-  {
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-
-  100%
-  {
-    -webkit-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
+.fico-icon-arrow-circle-down:before {
+  content: "\ea10";
 }
-
-.icofont-rotate-90
-{
-  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=1)";
-  -webkit-transform: rotate(90deg);
-  transform: rotate(90deg);
+.fico-icon-arrow-circle-left:before {
+  content: "\ea11";
 }
-
-.icofont-rotate-180
-{
-  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=2)";
-  -webkit-transform: rotate(180deg);
-  transform: rotate(180deg);
+.fico-icon-arrow-solid-up:before {
+  content: "\ea17";
 }
-
-.icofont-rotate-270
-{
-  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=3)";
-  -webkit-transform: rotate(270deg);
-  transform: rotate(270deg);
+.fico-icon-arrow-solid-right:before {
+  content: "\ea16";
 }
-
-.icofont-flip-horizontal
-{
-  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)";
-  -webkit-transform: scale(-1, 1);
-  transform: scale(-1, 1);
+.fico-icon-arrow-solid-down:before {
+  content: "\ea14";
 }
-
-.icofont-flip-vertical
-{
-  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)";
-  -webkit-transform: scale(1, -1);
-  transform: scale(1, -1);
+.fico-icon-arrow-solid-left:before {
+  content: "\ea15";
 }
-
-.icofont-flip-horizontal.icofont-flip-vertical
-{
-  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)";
-  -webkit-transform: scale(-1, -1);
-  transform: scale(-1, -1);
+.fico-icon-arrow-up:before {
+  content: "\ea1b";
 }
-
-:root .icofont-rotate-90,
-	:root .icofont-rotate-180,
-	:root .icofont-rotate-270,
-	:root .icofont-flip-horizontal,
-	:root .icofont-flip-vertical
-{
-  -webkit-filter: none;
-  filter: none;
-  display: inline-block;
+.fico-icon-arrow-right:before {
+  content: "\ea1a";
 }
-
-.icofont-inverse
-{
-  color: #fff;
+.fico-icon-arrow-down:before {
+  content: "\ea18";
 }
-
-.sr-only
-{
-  border: 0;
-  clip: rect(0, 0, 0, 0);
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  padding: 0;
-  position: absolute;
-  width: 1px;
+.fico-icon-arrow-left:before {
+  content: "\ea19";
 }
-
-.sr-only-focusable:active,
-	.sr-only-focusable:focus
-{
-  clip: auto;
-  height: auto;
-  margin: 0;
-  overflow: visible;
-  position: static;
-  width: auto;
+.fico-icon-caret-up:before {
+  content: "\ea1f";
 }
-	
+.fico-icon-caret-right:before {
+  content: "\ea1e";
+}
+.fico-icon-caret-down:before {
+  content: "\ea1c";
+}
+.fico-icon-caret-left:before {
+  content: "\ea1d";
+}
+.fico-icon-chevron-light-up:before {
+  content: "\ea23";
+}
+.fico-icon-chevron-light-right:before {
+  content: "\ea22";
+}
+.fico-icon-chevron-light-down:before {
+  content: "\ea20";
+}
+.fico-icon-chevron-light-left:before {
+  content: "\ea21";
+}
+.fico-icon-circle-up-right:before {
+  content: "\e93a";
+}
+.fico-icon-circle-down-right:before {
+  content: "\e938";
+}
+.fico-icon-arrow-fat-down:before {
+  content: "\e908";
+}
+.fico-icon-level-up:before {
+  content: "\e9a8";
+}
+.fico-icon-rotate-anti:before {
+  content: "\e9f9";
+}
+.fico-icon-rotate:before {
+  content: "\e9f8";
+}
+.fico-icon-spinner:before {
+  content: "\ea30";
+}
+.fico-icon-spin-disc:before {
+  content: "\ea2f";
+}
+.fico-icon-loop3:before {
+  content: "\e9b0";
+}
+.fico-icon-repeat:before {
+  content: "\e9f5";
+}
+.fico-icon-random-exchange:before {
+  content: "\e9f1";
+}
+.fico-icon-history:before {
+  content: "\e99c";
+}
+.fico-icon-undo:before {
+  content: "\ea50";
+}
+.fico-icon-redo:before {
+  content: "\e9f3";
+}
+.fico-icon-sort-up:before {
+  content: "\ea2e";
+}
+.fico-icon-sort-down:before {
+  content: "\ea2d";
+}
+.fico-icon-unsorted:before {
+  content: "\ea54";
+}
+.fico-icon-unsorted2:before {
+  content: "\ea55";
+}
+.fico-icon-filter-solid:before {
+  content: "\e988";
+}
+.fico-icon-filter:before {
+  content: "\e987";
+}
+.fico-icon-save:before {
+  content: "\e9fc";
+}
+.fico-icon-save-as:before {
+  content: "\e9fd";
+}
+.fico-icon-enter:before {
+  content: "\e96b";
+}
+.fico-icon-exit:before {
+  content: "\e970";
+}
+.fico-icon-export:before {
+  content: "\e971";
+}
+.fico-icon-share:before {
+  content: "\ea24";
+}
+.fico-icon-download:before {
+  content: "\e962";
+}
+.fico-icon-upload:before {
+  content: "\ea56";
+}
+.fico-icon-check-out:before {
+  content: "\e933";
+}
+.fico-icon-check-in:before {
+  content: "\e930";
+}
+.fico-icon-refund-payment:before {
+  content: "\e9f4";
+}
+.fico-icon-checkin-comments:before {
+  content: "\e931";
+}
+.fico-icon-menu:before {
+  content: "\e9b5";
+}
+.fico-icon-pin:before {
+  content: "\e9e0";
+}
+.fico-icon-bookmark-solid:before {
+  content: "\e915";
+}
+.fico-icon-bookmark:before {
+  content: "\e914";
+}
+.fico-icon-asterisk:before {
+  content: "\e909";
+}
+.fico-icon-flag-solid:before {
+  content: "\e98a";
+}
+.fico-icon-flag:before {
+  content: "\e989";
+}
+.fico-icon-lock:before {
+  content: "\e9af";
+}
+.fico-icon-unlocked:before {
+  content: "\ea53";
+}
+.fico-icon-link:before {
+  content: "\e9aa";
+}
+.fico-icon-unlink:before {
+  content: "\ea51";
+}
+.fico-icon-link2:before {
+  content: "\e9ab";
+}
+.fico-icon-unlink2:before {
+  content: "\ea52";
+}
+.fico-icon-toggle-on:before {
+  content: "\ea48";
+}
+.fico-icon-toggle-off:before {
+  content: "\ea46";
+}
+.fico-icon-toggle-on-solid:before {
+  content: "\ea49";
+}
+.fico-icon-toggle-off-solid:before {
+  content: "\ea47";
+}
+.fico-icon-close-circle-solid:before {
+  content: "\e944";
+}
+.fico-icon-close-circle:before {
+  content: "\e943";
+}
+.fico-icon-close:before {
+  content: "\e942";
+}
+.fico-icon-trash-solid:before {
+  content: "\ea4b";
+}
+.fico-icon-trash:before {
+  content: "\ea4a";
+}
+.fico-icon-rearrange:before {
+  content: "\e9f2";
+}
+.fico-icon-plus-circle-solid:before {
+  content: "\e9e5";
+}
+.fico-icon-minus-circle-solid:before {
+  content: "\e9bc";
+}
+.fico-icon-plus-circle:before {
+  content: "\e9e4";
+}
+.fico-icon-minus-circle:before {
+  content: "\e9bb";
+}
+.fico-icon-plus:before {
+  content: "\e9e3";
+}
+.fico-icon-minus:before {
+  content: "\e9ba";
+}
+.fico-icon-plus-square:before {
+  content: "\e9e6";
+}
+.fico-icon-minus-square:before {
+  content: "\e9db";
+}
+.fico-icon-plus-square-solid:before {
+  content: "\e9e7";
+}
+.fico-icon-minus-square-solid:before {
+  content: "\e9be";
+}
+.fico-icon-zoomin-solid:before {
+  content: "\ea60";
+}
+.fico-icon-zoomout-solid:before {
+  content: "\ea62";
+}
+.fico-icon-zoomin:before {
+  content: "\ea5f";
+}
+.fico-icon-zoomout:before {
+  content: "\ea61";
+}
+.fico-icon-search-solid:before {
+  content: "\ea00";
+}
+.fico-icon-search:before {
+  content: "\e9ff";
+}
+.fico-icon-play-solid:before {
+  content: "\e9e2";
+}
+.fico-icon-play:before {
+  content: "\e9e1";
+}
+.fico-icon-pause-solid:before {
+  content: "\e9d3";
+}
+.fico-icon-pause:before {
+  content: "\e9d2";
+}
+.fico-icon-stop-solid:before {
+  content: "\ea38";
+}
+.fico-icon-stop:before {
+  content: "\ea37";
+}
+.fico-icon-tag:before {
+  content: "\ea3f";
+}
+.fico-icon-vcard:before {
+  content: "\ea59";
+}
+.fico-icon-thumbs-up:before {
+  content: "\ea44";
+}
+.fico-icon-thumbs-down:before {
+  content: "\ea42";
+}
+.fico-icon-thumbs-up-solid:before {
+  content: "\ea45";
+}
+.fico-icon-thumbs-down-solid:before {
+  content: "\ea43";
+}
+.fico-icon-handshake-solid:before {
+  content: "\e996";
+}
+.fico-icon-handshake:before {
+  content: "\e995";
+}
+.fico-icon-heart-solid:before {
+  content: "\e99a";
+}
+.fico-icon-heart:before {
+  content: "\e997";
+}
+.fico-icon-heart-circle-solid:before {
+  content: "\e999";
+}
+.fico-icon-heart-circle:before {
+  content: "\e998";
+}
+.fico-icon-life-event:before {
+  content: "\e9a9";
+}
+.fico-icon-user:before {
+  content: "\ea57";
+}
+.fico-icon-users:before {
+  content: "\ea58";
+}
+.fico-icon-joined-primary:before {
+  content: "\e9a2";
+}
+.fico-icon-joined-secondary:before {
+  content: "\e9a3";
+}
+.fico-icon-joined-group:before {
+  content: "\e9a1";
+}
+.fico-icon-eye:before {
+  content: "\e972";
+}
+.fico-icon-eye-blocked:before {
+  content: "\e973";
+}
+.fico-icon-eye-solid:before {
+  content: "\e974";
+}
+.fico-icon-eye-solid-blocked:before {
+  content: "\e975";
+}
+.fico-icon-shield:before {
+  content: "\ea25";
+}
+.fico-icon-shield-check-solid:before {
+  content: "\ea27";
+}
+.fico-icon-shield-check:before {
+  content: "\ea26";
+}
+.fico-icon-security:before {
+  content: "\ea01";
+}
+.fico-icon-check-solid:before {
+  content: "\e934";
+}
+.fico-icon-check:before {
+  content: "\e92d";
+}
+.fico-icon-check-square-solid:before {
+  content: "\e936";
+}
+.fico-icon-check-square:before {
+  content: "\e935";
+}
+.fico-icon-check-circle-solid:before {
+  content: "\e92f";
+}
+.fico-icon-check-circle:before {
+  content: "\e92e";
+}
+.fico-icon-clock-solid:before {
+  content: "\e941";
+}
+.fico-icon-clock:before {
+  content: "\e940";
+}
+.fico-icon-square-solid:before {
+  content: "\ea33";
+}
+.fico-icon-square:before {
+  content: "\ea31";
+}
+.fico-icon-square-checked:before {
+  content: "\ea32";
+}
+.fico-icon-radio-unchecked:before {
+  content: "\e9f0";
+}
+.fico-icon-radio-checked:before {
+  content: "\e9ef";
+}
+.fico-icon-paper-plane-solid:before {
+  content: "\e9cf";
+}
+.fico-icon-paper-plane:before {
+  content: "\e9ce";
+}
+.fico-icon-envelope-solid:before {
+  content: "\e96f";
+}
+.fico-icon-envelope:before {
+  content: "\e96c";
+}
+.fico-icon-envelope-open-solid:before {
+  content: "\e96e";
+}
+.fico-icon-envelope-open:before {
+  content: "\e96d";
+}
+.fico-icon-print:before {
+  content: "\e9ea";
+}
+.fico-icon-scissors:before {
+  content: "\e9fe";
+}
+.fico-icon-pen:before {
+  content: "\e9df";
+}
+.fico-icon-chart-pie-solid:before {
+  content: "\e92b";
+}
+.fico-icon-chart-pie:before {
+  content: "\e92a";
+}
+.fico-icon-chart-pie-solid2:before {
+  content: "\e92c";
+}
+.fico-icon-chart-bar:before {
+  content: "\e921";
+}
+.fico-icon-chart-bar2:before {
+  content: "\e922";
+}
+.fico-icon-chart-bar-grouped:before {
+  content: "\e923";
+}
+.fico-icon-chart-bar-stacked:before {
+  content: "\e924";
+}
+.fico-icon-chart-bullet:before {
+  content: "\e925";
+}
+.fico-icon-chart-area-lineup:before {
+  content: "\e920";
+}
+.fico-icon-chart-analytics:before {
+  content: "\e91f";
+}
+.fico-icon-chart-line-up:before {
+  content: "\e928";
+}
+.fico-icon-chart-line-down:before {
+  content: "\e926";
+}
+.fico-icon-chart-line-up2:before {
+  content: "\e929";
+}
+.fico-icon-chart-line-down2:before {
+  content: "\e927";
+}
+.fico-icon-reports:before {
+  content: "\e9f6";
+}
+.fico-icon-book:before {
+  content: "\e913";
+}
+.fico-icon-archive:before {
+  content: "\e907";
+}
+.fico-icon-calendar:before {
+  content: "\e918";
+}
+.fico-icon-calendar-check:before {
+  content: "\e919";
+}
+.fico-icon-checkin-date:before {
+  content: "\e932";
+}
+.fico-icon-cursor-hand:before {
+  content: "\e95c";
+}
+.fico-icon-cursor-pointer:before {
+  content: "\e95d";
+}
+.fico-icon-tree:before {
+  content: "\ea4c";
+}
+.fico-icon-tree-solid:before {
+  content: "\ea4d";
+}
+.fico-icon-tree-solid-horiz:before {
+  content: "\ea4e";
+}
+.fico-icon-modeler-tree:before {
+  content: "\e9c3";
+}
+.fico-icon-modeler-ensemble:before {
+  content: "\e9c0";
+}
+.fico-icon-open-strategy-tree:before {
+  content: "\e9cb";
+}
+.fico-icon-modeler-scorecard-ensemble:before {
+  content: "\e9c2";
+}
+.fico-icon-modeler-scorecard:before {
+  content: "\e9c1";
+}
+.fico-icon-modeler-scorecard-solid:before {
+  content: "\e903";
+}
+.fico-icon-tasks:before {
+  content: "\ea41";
+}
+.fico-icon-business:before {
+  content: "\e917";
+}
+.fico-icon-bank:before {
+  content: "\e90e";
+}
+.fico-icon-briefcase:before {
+  content: "\e916";
+}
+.fico-icon-legal-matter:before {
+  content: "\e9a7";
+}
+.fico-icon-filing-cabinet-solid:before {
+  content: "\e986";
+}
+.fico-icon-filing-cabinet:before {
+  content: "\e985";
+}
+.fico-icon-retirement:before {
+  content: "\e9f7";
+}
+.fico-icon-phone:before {
+  content: "\ea28";
+}
+.fico-icon-mobile:before {
+  content: "\e9bf";
+}
+.fico-icon-ellipsis-solid:before {
+  content: "\e968";
+}
+.fico-icon-ellipsis:before {
+  content: "\e966";
+}
+.fico-icon-ellipsis-light:before {
+  content: "\e967";
+}
+.fico-icon-target:before {
+  content: "\ea40";
+}
+.fico-icon-station:before {
+  content: "\ea36";
+}
+.fico-icon-commcenter:before {
+  content: "\e94f";
+}
+.fico-icon-table:before {
+  content: "\ea39";
+}
+.fico-icon-table-compact:before {
+  content: "\ea3b";
+}
+.fico-icon-table-sub-rows:before {
+  content: "\ea3e";
+}
+.fico-icon-table-row:before {
+  content: "\ea3c";
+}
+.fico-icon-table-column:before {
+  content: "\ea3a";
+}
+.fico-icon-view-horizontal:before {
+  content: "\ea5a";
+}
+.fico-icon-view-vertical:before {
+  content: "\ea5b";
+}
+.fico-icon-table-sub-columns:before {
+  content: "\ea3d";
+}
+.fico-icon-paste-solid:before {
+  content: "\e9d1";
+}
+.fico-icon-copy:before {
+  content: "\e958";
+}
+.fico-icon-paste:before {
+  content: "\e9d0";
+}
+.fico-icon-copy-settings:before {
+  content: "\e959";
+}
+.fico-icon-copy-user:before {
+  content: "\e95a";
+}
+.fico-icon-object-group:before {
+  content: "\e9c9";
+}
+.fico-icon-object-ungroup:before {
+  content: "\e9ca";
+}
+.fico-icon-promote:before {
+  content: "\e9eb";
+}
+.fico-icon-stack-plus:before {
+  content: "\ea35";
+}
+.fico-icon-stack-list:before {
+  content: "\ea34";
+}
+.fico-icon-sliders-horiz-solid:before {
+  content: "\ea29";
+}
+.fico-icon-sliders-vert-solid:before {
+  content: "\ea2b";
+}
+.fico-icon-sliders-horiz-square:before {
+  content: "\ea2a";
+}
+.fico-icon-sliders-vert-square:before {
+  content: "\ea2c";
+}
+.fico-icon-drag:before {
+  content: "\e963";
+}
+.fico-icon-drag-wide:before {
+  content: "\e965";
+}
+.fico-icon-drag-horiz:before {
+  content: "\e964";
+}
+.fico-icon-move:before {
+  content: "\e9c5";
+}
+.fico-icon-enlarge-solid:before {
+  content: "\e96a";
+}
+.fico-icon-maximize:before {
+  content: "\e9b1";
+}
+.fico-icon-minimize:before {
+  content: "\e9b9";
+}
+.fico-icon-compress:before {
+  content: "\e954";
+}
+.fico-icon-enlarge:before {
+  content: "\e969";
+}
+.fico-icon-merge:before {
+  content: "\e9b6";
+}
+.fico-icon-merge-horiz:before {
+  content: "\e9b7";
+}
+.fico-icon-puzzle:before {
+  content: "\e9ec";
+}
+.fico-icon-3-column:before {
+  content: "\e901";
+}
+.fico-icon-2-column:before {
+  content: "\e900";
+}
+.fico-icon-list:before {
+  content: "\e9ac";
+}
+.fico-icon-list-square-solid:before {
+  content: "\e9ae";
+}
+.fico-icon-list-square:before {
+  content: "\e9ad";
+}
+.fico-icon-grid-solid:before {
+  content: "\e993";
+}
+.fico-icon-grid-table:before {
+  content: "\e994";
+}
+.fico-icon-grid:before {
+  content: "\e992";
+}
+.fico-icon-layers:before {
+  content: "\e9a6";
+}
+.fico-icon-clipboard:before {
+  content: "\e93c";
+}
+.fico-icon-clipboard-empty:before {
+  content: "\e93f";
+}
+.fico-icon-file-check-solid:before {
+  content: "\e979";
+}
+.fico-icon-file-check:before {
+  content: "\e978";
+}
+.fico-icon-layer-plus:before {
+  content: "\e9a5";
+}
+.fico-icon-layer-minus:before {
+  content: "\e9a4";
+}
+.fico-icon-folder-solid:before {
+  content: "\e98e";
+}
+.fico-icon-folder:before {
+  content: "\e98b";
+}
+.fico-icon-folder-open-solid:before {
+  content: "\e98d";
+}
+.fico-icon-folder-open:before {
+  content: "\e98c";
+}
+.fico-icon-folder-tree:before {
+  content: "\e902";
+}
+.fico-icon-file:before {
+  content: "\e976";
+}
+.fico-icon-file-empty:before {
+  content: "\e97c";
+}
+.fico-icon-file-solid:before {
+  content: "\e982";
+}
+.fico-icon-file-blank-solid:before {
+  content: "\e977";
+}
+.fico-icon-file-plus:before {
+  content: "\e97f";
+}
+.fico-icon-file-remove:before {
+  content: "\e980";
+}
+.fico-icon-file-remove-solid:before {
+  content: "\e981";
+}
+.fico-icon-file-download-solid:before {
+  content: "\e97b";
+}
+.fico-icon-file-upload-solid:before {
+  content: "\e983";
+}
+.fico-icon-clipboard-checked:before {
+  content: "\e93d";
+}
+.fico-icon-clipboard-checked-solid:before {
+  content: "\e93e";
+}
+.fico-icon-file-css:before {
+  content: "\e97a";
+}
+.fico-icon-file-excel:before {
+  content: "\e97d";
+}
+.fico-icon-file-pdf:before {
+  content: "\e97e";
+}
+.fico-icon-file-zip:before {
+  content: "\e984";
+}
+.fico-icon-cloud-upload:before {
+  content: "\e949";
+}
+.fico-icon-cloud-download:before {
+  content: "\e946";
+}
+.fico-icon-cloud-upload-solid:before {
+  content: "\e94a";
+}
+.fico-icon-cloud-download-solid:before {
+  content: "\e947";
+}
+.fico-icon-cloud:before {
+  content: "\e945";
+}
+.fico-icon-cloud-solid:before {
+  content: "\e948";
+}
+.fico-icon-database:before {
+  content: "\e95e";
+}
+.fico-icon-database-add:before {
+  content: "\e95f";
+}
+.fico-icon-database-error:before {
+  content: "\e960";
+}
+.fico-icon-database-selected-column:before {
+  content: "\e961";
+}
+.fico-icon-power-solid:before {
+  content: "\e9e9";
+}
+.fico-icon-power:before {
+  content: "\e9e8";
+}
+.fico-icon-udp:before {
+  content: "\ea4f";
+}
+.fico-icon-cog-solid:before {
+  content: "\e94d";
+}
+.fico-icon-cog:before {
+  content: "\ea89";
+}
+.fico-icon-cogs-solid:before {
+  content: "\e94e";
+}
+.fico-icon-code-branch-solid:before {
+  content: "\e94c";
+}
+.fico-icon-network:before {
+  content: "\e9c6";
+}
+.fico-icon-graph-solid:before {
+  content: "\e991";
+}
+.fico-icon-graph:before {
+  content: "\e990";
+}
+.fico-icon-configuration-package:before {
+  content: "\e955";
+}
+.fico-icon-code:before {
+  content: "\e94b";
+}
+.fico-icon-comment:before {
+  content: "\e950";
+}
+.fico-icon-comment-solid:before {
+  content: "\e952";
+}
+.fico-icon-comments:before {
+  content: "\e951";
+}
+.fico-icon-comments-solid:before {
+  content: "\e953";
+}
+.fico-icon-attachment:before {
+  content: "\e90d";
+}
+.fico-icon-alarm:before {
+  content: "\e906";
+}
+.fico-icon-blocked:before {
+  content: "\e912";
+}
+.fico-icon-at-sign:before {
+  content: "\e90c";
+}
+.fico-icon-payment-no:before {
+  content: "\e9d8";
+}
+.fico-icon-payment-made:before {
+  content: "\e9d7";
+}
+.fico-icon-payment-late:before {
+  content: "\e9d6";
+}
+.fico-icon-payment_due:before {
+  content: "\e9d4";
+}
+.fico-icon-payment-cancel:before {
+  content: "\e9d5";
+}
+.fico-icon-payment-yes-active:before {
+  content: "\e9da";
+}
+.fico-icon-payment-partial:before {
+  content: "\e9d9";
+}
+.fico-icon-media-new-content:before {
+  content: "\e9b3";
+}
+.fico-icon-media-has-content:before {
+  content: "\e9b2";
+}
+.fico-icon-media-no-content:before {
+  content: "\e9b4";
+}
+.fico-icon-rr-no-content:before {
+  content: "\e9fb";
+}
+.fico-icon-rr-has-content:before {
+  content: "\e9fa";
+}
+.fico-icon-meter-fast:before {
+  content: "\e9b8";
+}
+.fico-icon-other-payment:before {
+  content: "\e9cc";
+}
+.fico-icon-income-reduction:before {
+  content: "\e99e";
+}
+.fico-icon-consumer:before {
+  content: "\e956";
+}
+.fico-icon-consumer_contacts:before {
+  content: "\e957";
+}
+.fico-icon-adjust:before {
+  content: "\e904";
+}
+.fico-icon-adjust-horiz:before {
+  content: "\e905";
+}
+.fico-icon-circle:before {
+  content: "\e937";
+}
+.fico-icon-circle-solid:before {
+  content: "\e939";
+}
+.fico-icon-credit-card:before {
+  content: "\e95b";
+}
+.fico-icon-cc-mastercard:before {
+  content: "\e91c";
+}
+.fico-icon-cc-amex:before {
+  content: "\e91a";
+}
+.fico-icon-cc-visa:before {
+  content: "\e91e";
+}
+.fico-icon-cc-discover:before {
+  content: "\e91b";
+}
+.fico-icon-money:before {
+  content: "\e9c4";
+}
+.fico-icon-wallet:before {
+  content: "\ea5c";
+}
+.fico-icon-cc-transfer:before {
+  content: "\e91d";
+}
+.fico-icon-claim-fraud:before {
+  content: "\e93b";
+}
+.fico-icon-bank-check:before {
+  content: "\e90f";
+}
+.fico-icon-bank-check2:before {
+  content: "\e910";
+}
+.fico-icon-100:before {
+  content: "\e90a";
+}
+.fico-icon-atom:before {
+  content: "\e90b";
+}
+.fico-icon-atom-add:before {
+  content: "\e98f";
+}
+.fico-icon-add-shortest-path:before {
+  content: "\e99b";
+}
+.fico-icon-remove-shortest-path:before {
+  content: "\ea80";
+}
+.fico-icon-highlight-shortest-path:before {
+  content: "\e9cd";
+}
+.fico-icon-selection-add:before {
+  content: "\ea02";
+}
+.fico-icon-selection-clear:before {
+  content: "\ea03";
+}
+.fico-icon-pagebreak:before {
+  content: "\ea63";
+}
+.fico-icon-function:before {
+  content: "\ea69";
+}
+.fico-icon-sigma:before {
+  content: "\ea64";
+}
+.fico-icon-PMML:before {
+  content: "\ea65";
+}
+.fico-icon-data-load:before {
+  content: "\ea67";
+}
+.fico-icon-black-list-white-list:before {
+  content: "\ea66";
+}
+.fico-icon-key:before {
+  content: "\ea68";
+}
+.fico-icon-star-solid:before {
+  content: "\ea6b";
+}
+.fico-icon-star:before {
+  content: "\ea6a";
+}
+.fico-icon-comment-no:before {
+  content: "\ea6c";
+}
+.fico-icon-email-no:before {
+  content: "\ea6d";
+}
+.fico-icon-phone-no:before {
+  content: "\eaae";
+}
+.fico-icon-map-marker:before {
+  content: "\ea6e";
+}
+.fico-icon-map-marker-no:before {
+  content: "\ea6f";
+}
+.fico-icon-youtube:before {
+  content: "\ea70";
+}
+.fico-icon-layout-columns-1:before {
+  content: "\ea71";
+}
+.fico-icon-layout-columns-2:before {
+  content: "\ea72";
+}
+.fico-icon-layout-columns-3:before {
+  content: "\ea73";
+}
+.fico-icon-layout-columns-4:before {
+  content: "\ea74";
+}
+.fico-icon-layout-columns-5:before {
+  content: "\ea75";
+}
+.fico-icon-layout-columns-6:before {
+  content: "\ea76";
+}
+.fico-icon-layout-columns-7:before {
+  content: "\ea77";
+}
+.fico-icon-layout-columns-8:before {
+  content: "\ea78";
+}
+.fico-icon-dashboard:before {
+  content: "\ea79";
+}
+.fico-icon-flip:before {
+  content: "\ea7b";
+}
+.fico-icon-compile:before {
+  content: "\ea7a";
+}
+.fico-icon-explore:before {
+  content: "\ea7c";
+}
+.fico-icon-instant-ml:before {
+  content: "\ea7d";
+}
+.fico-icon-reason-code:before {
+  content: "\ea7f";
+}
+.fico-icon-rename:before {
+  content: "\ea7e";
+}
+.fico-icon-transformation:before {
+  content: "\ea81";
+}
+.fico-icon-code-checkin:before {
+  content: "\ea87";
+}
+.fico-icon-code-checkin-cancel:before {
+  content: "\ea88";
+}
+.fico-icon-code-checkout:before {
+  content: "\ea8a";
+}
+.fico-icon-section:before {
+  content: "\e9bd";
+}
+.fico-icon-row:before {
+  content: "\ea93";
+}
+.fico-icon-column:before {
+  content: "\ea94";
+}
+.fico-icon-container:before {
+  content: "\ea95";
+}
+.fico-icon-list-item:before {
+  content: "\ea96";
+}
+.fico-icon-button:before {
+  content: "\ea97";
+}
+.fico-icon-field:before {
+  content: "\ea98";
+}
+.fico-icon-panel-bottom-open:before {
+  content: "\ea8b";
+}
+.fico-icon-panel-left-open:before {
+  content: "\ea8c";
+}
+.fico-icon-panel-top-open:before {
+  content: "\ea8d";
+}
+.fico-icon-panel-right-open:before {
+  content: "\ea8e";
+}
+.fico-icon-panel-top-close:before {
+  content: "\ea8f";
+}
+.fico-icon-panel-right-close:before {
+  content: "\ea90";
+}
+.fico-icon-panel-bottom-close:before {
+  content: "\ea91";
+}
+.fico-icon-panel-left-close:before {
+  content: "\ea92";
+}
+.fico-icon-python:before {
+  content: "\ea99";
+}
+.fico-icon-delta:before {
+  content: "\ea9a";
+}
+.fico-icon-primary:before {
+  content: "\ea9b";
+}
+.fico-icon-regulatory-rs:before {
+  content: "\ea9c";
+}
+.fico-icon-data-extraction:before {
+  content: "\ea9d";
+}
+.fico-icon-ire:before {
+  content: "\ea9e";
+}
+.fico-icon-reporting:before {
+  content: "\ea9f";
+}
+.fico-icon-watchlist:before {
+  content: "\eaa0";
+}
+.fico-icon-1st-place:before {
+  content: "\eaa1";
+}
+.fico-icon-2nd-place:before {
+  content: "\eaa2";
+}
+.fico-icon-3rd-place:before {
+  content: "\eaa3";
+}
+.fico-icon-rank-1:before {
+  content: "\eaa5";
+}
+.fico-icon-rank-2:before {
+  content: "\eaa6";
+}
+.fico-icon-rank-3:before {
+  content: "\eaa7";
+}
+.fico-icon-rank-4:before {
+  content: "\eaa8";
+}
+.fico-icon-rank-5:before {
+  content: "\eaa9";
+}
+.fico-icon-rank-selected:before {
+  content: "\eaaa";
+}
+.fico-icon-restart-clear:before {
+  content: "\eaa4";
+}
+.fico-icon-compare:before {
+  content: "\ea86";
+}
+.fico-icon-eyedropper:before {
+  content: "\eaab";
+}
+.fico-icon-compile-alt:before {
+  content: "\eaac";
+}
+.fico-icon-drag-spline:before {
+  content: "\eaad";
+}
+.fico-icon-drag-vertices:before {
+  content: "\eaaf";
+}
+.fico-icon-asset-pattern:before {
+  content: "\eab0";
+}
+.fico-icon-audit-log:before {
+  content: "\eab1";
+}
+.fico-icon-data:before {
+  content: "\eab2";
+}
+.fico-icon-decisions-config:before {
+  content: "\eab3";
+}
+.fico-icon-notebook:before {
+  content: "\eab4";
+}
+.fico-icon-transform-ascending:before {
+  content: "\eab5";
+}
+.fico-icon-transform-descending:before {
+  content: "\eab6";
+}
+.fico-icon-ratio:before {
+  content: "\eab7";
+}
+.fico-icon-bin:before {
+  content: "\eab8";
+}
+.fico-icon-multiple-bins:before {
+  content: "\eab9";
+}
+.fico-icon-rebin:before {
+  content: "\eaba";
+}
+.fico-icon-exclamation:before {
+  content: "\eabb";
+}
+.fico-icon-1st-party-round:before {
+  content: "\eabc";
+}
+.fico-icon-3rd-party-round:before {
+  content: "\eabd";
+}
+.fico-icon-account-mortgage:before {
+  content: "\eabe";
+}
+.fico-icon-arrests:before {
+  content: "\eabf";
+}
+.fico-icon-birth-certificates:before {
+  content: "\eac0";
+}
+.fico-icon-convertible:before {
+  content: "\eac1";
+}
+.fico-icon-couple:before {
+  content: "\eac2";
+}
+.fico-icon-criminal:before {
+  content: "\eac3";
+}
+.fico-icon-criminal-record:before {
+  content: "\eac4";
+}
+.fico-icon-driver:before {
+  content: "\eac5";
+}
+.fico-icon-employee:before {
+  content: "\eac6";
+}
+.fico-icon-family-round:before {
+  content: "\eac7";
+}
+.fico-icon-investigation:before {
+  content: "\eac8";
+}
+.fico-icon-license-plate:before {
+  content: "\eac9";
+}
+.fico-icon-occupancies:before {
+  content: "\eaca";
+}
+.fico-icon-passenger:before {
+  content: "\eacb";
+}
+.fico-icon-policy:before {
+  content: "\eacc";
+}
+.fico-icon-prisoner:before {
+  content: "\eacd";
+}
+.fico-icon-provider:before {
+  content: "\eace";
+}
+.fico-icon-provider-group:before {
+  content: "\eacf";
+}
+.fico-icon-ssn-card:before {
+  content: "\ead0";
+}
+.fico-icon-transaction:before {
+  content: "\ead1";
+}
+.fico-icon-transaction-from:before {
+  content: "\ead2";
+}
+.fico-icon-transaction-to:before {
+  content: "\ead3";
+}
+.fico-icon-witness:before {
+  content: "\ead4";
+}
+.fico-icon-binned:before {
+  content: "\ead5";
+}
+.fico-icon-continuous:before {
+  content: "\ead6";
+}
+.fico-icon-asset-analytic-notebook:before {
+  content: "\ead7";
+}
+.fico-icon-asset-binning-library:before {
+  content: "\ead8";
+}
+.fico-icon-asset-business-knowledge-model:before {
+  content: "\ead9";
+}
+.fico-icon-asset-calculation-function:before {
+  content: "\eada";
+}
+.fico-icon-asset-dashboard:before {
+  content: "\eadb";
+}
+.fico-icon-asset-data-definition:before {
+  content: "\eadc";
+}
+.fico-icon-asset-data-dictionary:before {
+  content: "\eadd";
+}
+.fico-icon-asset-data-flow:before {
+  content: "\eade";
+}
+.fico-icon-asset-data-pipeline:before {
+  content: "\eadf";
+}
+.fico-icon-asset-dataset:before {
+  content: "\eae0";
+}
+.fico-icon-asset-data-source:before {
+  content: "\eae1";
+}
+.fico-icon-asset-decision-strategy:before {
+  content: "\eae2";
+}
+.fico-icon-asset-decision-tree:before {
+  content: "\eae3";
+}
+.fico-icon-asset-model:before {
+  content: "\eae4";
+}
+.fico-icon-asset-page:before {
+  content: "\eae5";
+}
+.fico-icon-asset-performance-inference:before {
+  content: "\eae6";
+}
+.fico-icon-asset-policy:before {
+  content: "\eae7";
+}
+.fico-icon-asset-process:before {
+  content: "\eae8";
+}
+.fico-icon-asset-profile:before {
+  content: "\eae9";
+}
+.fico-icon-asset-report:before {
+  content: "\eaea";
+}
+.fico-icon-asset-rule:before {
+  content: "\eaeb";
+}
+.fico-icon-asset-ruleset:before {
+  content: "\eaec";
+}
+.fico-icon-asset-scorecard:before {
+  content: "\eaed";
+}
+.fico-icon-asset-sub-process:before {
+  content: "\eaee";
+}
+.fico-icon-asset-transformation:before {
+  content: "\eaef";
+}
+.fico-icon-asset-variable-library:before {
+  content: "\eaf0";
+}
+.fico-icon-asset-web-service:before {
+  content: "\eaf1";
+}
+.fico-icon-asset-workflow:before {
+  content: "\eaf2";
+}
+.fico-icon-asset-xpress-solver:before {
+  content: "\eaf3";
+}
+.fico-icon-experiments:before {
+  content: "\eaf4";
+}
+.fico-icon-add-user:before {
+  content: "\eaf5";
+}
+.fico-icon-find-case:before {
+  content: "\eaf6";
+}
+.fico-icon-marketing-actions:before {
+  content: "\eaf7";
+}
+.fico-icon-marketing-analytics-machine-learning:before {
+  content: "\eaf8";
+}
+.fico-icon-marketing-communications:before {
+  content: "\eaf9";
+}
+.fico-icon-marketing-composition-orchestration:before {
+  content: "\eafa";
+}
+.fico-icon-marketing-contextual-processing:before {
+  content: "\eafb";
+}
+.fico-icon-marketing-data:before {
+  content: "\eafc";
+}
+.fico-icon-marketing-dataflow:before {
+  content: "\eafd";
+}
+.fico-icon-marketing-decisions:before {
+  content: "\eafe";
+}
+.fico-icon-marketing-external-data-access:before {
+  content: "\eaff";
+}
+.fico-icon-marketing-feature-generation-profiling:before {
+  content: "\eb00";
+}
+.fico-icon-marketing-feature-management:before {
+  content: "\eb01";
+}
+.fico-icon-marketing-governance:before {
+  content: "\eb02";
+}
+.fico-icon-marketing-insights:before {
+  content: "\eb03";
+}
+.fico-icon-marketing-link-analysis:before {
+  content: "\eb04";
+}
+.fico-icon-marketing-optimization:before {
+  content: "\eb05";
+}
+.fico-icon-marketing-outcomes:before {
+  content: "\eb06";
+}
+.fico-icon-marketing-simulation:before {
+  content: "\eb07";
+}
+.fico-icon-marketing-testing-validation:before {
+  content: "\eb08";
+}
+.fico-icon-marketing-user-interactions:before {
+  content: "\eb09";
+}
+.fico-icon-marketing-visualization:before {
+  content: "\eb0a";
+}
+.fico-icon-add-column-left:before {
+  content: "\eb0b";
+}
+.fico-icon-add-column-right:before {
+  content: "\eb0c";
+}
+.fico-icon-add-row-above:before {
+  content: "\eb0d";
+}
+.fico-icon-add-row-below:before {
+  content: "\eb0e";
+}

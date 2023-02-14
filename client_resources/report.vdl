@@ -18,7 +18,7 @@
     <script type="text/javascript" src="js/projectframework.js"></script>
     <script type="text/javascript" src="js/report.js"></script>
 
-     <vdl-page vdl-if="=!projectframework.shelfValid() && projectframework.shelfValidationMessage()">
+     <vdl-page id="view-scenario-report" vdl-if="=!projectframework.shelfValid() && projectframework.shelfValidationMessage()">
         <vdl-section layout="fluid" class="centered-alert">
             <vdl-row>
                 <vdl-column size="12">
@@ -36,7 +36,7 @@
     </vdl-page>
 
     <vdl-preload entities="CHANNELS,ChannelName,metriccontactperchannel,metriccostperchannel,AveragePropensity,AverageValue,AverageCost" scenarios="all"></vdl-preload>
-    <vdl-page vdl-if="=projectframework.shelfValid()">
+    <vdl-page id="view-scenario-report" vdl-if="=projectframework.shelfValid()">
         <vdl-header>
             <style>
                 .model-status-error {

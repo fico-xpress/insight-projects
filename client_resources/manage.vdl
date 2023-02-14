@@ -1,61 +1,67 @@
-<!--
-   Insight project framework
-   
-   Framework for implementing Insight projects
-   
-   (c) Copyright 2020 Fair Isaac Corporation
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-     http://www.apache.org/licenses/LICENSE-2.0
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-   -->
 <vdl version="4.8">
-    <link rel="stylesheet" href="css/welcome_template.css">
-    <link rel="stylesheet" href="css/font.css">
+    <link rel="stylesheet" href="css/manage-projects.css">
     <script type="text/javascript" src="js/projectframework.js"></script>
     <script type="text/javascript" src="js/manage.js"></script>
-    <vdl-page>
+    <vdl-page id="view-manage-projects">
         <project-overlay></project-overlay>
-        <vdl-section id="welcome" layout="fluid">
+        <vdl-header>
+            <vdl-var name="layout" value="cards" persist="true"></vdl-var> <!-- cards | table -->
+            <vdl-var name="show" value="own" persist="true"></vdl-var> <!-- own | all -->
+            <vdl-action-group name="set_cards">
+                <vdl-action-set-var var="layout" value="cards"></vdl-action-set-var>
+            </vdl-action-group>
+            <vdl-action-group name="set_table">
+                <vdl-action-set-var var="layout" value="table"></vdl-action-set-var>
+            </vdl-action-group>
+            <vdl-action-group name="set_own">
+                <vdl-action-set-var var="show" value="own"></vdl-action-set-var>
+            </vdl-action-group>
+            <vdl-action-group name="set_all">
+                <vdl-action-set-var var="show" value="all"></vdl-action-set-var>
+            </vdl-action-group>
+        </vdl-header>
+        <vdl-section heading="Projects" layout="fluid">
             <vdl-row>
-                <vdl-column size="7">
-                    <div id="test">
-                        <h1><span vdl-text="Project framework reference implementation"></span></h1><span vdl-text="A small framework that implements a project concept within a FICO Xpress Insight app. A project is a managed folder in the app root containing a &quot;project scenario&quot; which holds the common project configuration and can implement project scoped logic and operations. The framework provides UI elements and bindings to create, open, rename, delete, import, export, share and clone a project.
-The framework is provided as a reference example based on the &quot;campaign conversion&quot; product example. This version of the example shows how to separate out the data model into project and scenario pieces, and how to implement appropriate views for both.
-"></span></div>
-                    <!-- CONTROLS BEGIN -->
-                    <div class="col-sm-12 max-width-column">
-                        <h2 class="create-new-project"><span vdl-text="Add a Project"></span></h2><input placeholder="Enter a project name..." type="text" id="newProjectName" class="form-control" data-bind="textInput: projectframework.newProjectName">
-                        <div class="project-open-buttons button-holder">
-                            <div class="btn-group pull-right">
-                                <button vdl-attr="disabled: !projectframework.newProjectName()" id="createProjectButton" class="btn btn-primary create-project-btn" vdl-event="click:projectframework.createProject.bind(projectframework, $('#newProjectName').val())">
-                                    New Project
-                                </button>
-                                <!-- insight v4 button -->
-                                <button vdl-if="=projectframework.apiVersion() == 1" vdl-attr="disabled: !projectframework.newProjectName()" id="importProjectButton" class="btn btn-primary import-project-btn" vdl-event="click:projectframework.importProject.bind(projectframework, $('#newProjectName').val(), 'UPLOAD')">
-                                    Import Via Upload
-                                </button>
-                                
-                                <!-- insight v5 button -->
-                                <button vdl-if="=projectframework.apiVersion() >= 2" vdl-attr="disabled: !projectframework.newProjectName()" id="importProjectButton" class="btn btn-primary import-project-btn" vdl-event="click:projectframework.importProject.bind(projectframework, $('#newProjectName').val(), 'UPLOAD')">
-                                    Import Via Upload
-                                </button>
-                                <button vdl-if="=projectframework.apiVersion() >=2 " vdl-attr="disabled: !projectframework.newProjectName()" id="importFromServerProjectButton" class="btn btn-primary import-project-btn" vdl-event="click:projectframework.importProject.bind(projectframework, $('#newProjectName').val(), 'SERVER')">
-                                    Import From Server
-                                </button>
+                <vdl-column size="12">
+                    <vdl-container class="toolbar-container">
+                        <div class="toolbar"><span vdl-text="Layout: "></span><i class="layout-toggle fico-icon-grid" title="Cards" vdl-event="click:actions.set_cards"></i><i class="layout-toggle fico-icon-table" title="Table" vdl-event="click:actions.set_table"></i></div>
+                        <div class="toolbar"><span vdl-text="Show: "></span><i class="layout-toggle fico-icon-user" title="My projects" vdl-event="click:actions.set_own"></i><i class="layout-toggle fico-icon-asset-web-service" title="All projects" vdl-event="click:actions.set_all"></i></div>
+                    </vdl-container>
+                    <vdl-container class="projects-container" vdl-if="=vars.layout=='cards'">
+                        <div class="card"  vdl-if="=vars.show === 'own'" vdl-repeat="=project in projectframework.currentOwnProjectFolders()" data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false">
+                            <div class="card-options"><a class="dropdown-toggle" data-toggle="dropdown"><i class="fico-dots-three-horizontal"></i></a>
+                                <ul class="dropdown-menu dropdown-menu-right">
+                                    <li><a class="app-rename-button" data-bind="click:window.projectframework.renameProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Rename"></span></a></li>
+                                    <li><a class="app-rename-button" data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Clone"></span></a></li>
+                                    <li><a class="app-rename-button" data-bind="click:window.projectframework.shareProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Share"></span></a></li>
+                                    <li><a class="app-rename-button" data-bind="click:window.projectframework.exportProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Export"></span></a></li>
+                                    <li><a class="app-rename-button" data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Delete"></span></a></li>
+                                </ul>
                             </div>
+                            <div class="card-title"><span vdl-text="=project.name"></span></div>
+                            <div class="card-body"></div>
+                            <div class="card-footer"><span vdl-text="='Owner: ' + project.owner.name"></span><i class="fico-icon-users sharing-icon" vdl-if="=project.shareStatus != 'PRIVATE'" title="Shared"></i></div>
                         </div>
-                    </div>
-                    <div class="col-sm-12 max-width-column">
-                        <h2><span vdl-text="Open a project"></span></h2>
-                        <div class="current-projects" vdl-if="=projectframework.currentProjectFolders().length >= 1">
-                            <div id="project_table" class="projects-list">
-                                <div class="pull-right"><button class="btn btn-secondary" vdl-event="click:projectframework.refreshProjectList.bind(projectframework)">Refresh</button></div>
+                        <div class="card"  vdl-if="=vars.show === 'all'" vdl-repeat="=project in projectframework.currentProjectFolders()" data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false">
+                            <div class="card-options"><a class="dropdown-toggle" data-toggle="dropdown"><i class="fico-dots-three-horizontal"></i></a>
+                                <ul class="dropdown-menu dropdown-menu-right">
+                                    <li><a class="app-rename-button" data-bind="click:window.projectframework.renameProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Rename"></span></a></li>
+                                    <li><a class="app-rename-button" data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Clone"></span></a></li>
+                                    <li><a class="app-rename-button" data-bind="click:window.projectframework.shareProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Share"></span></a></li>
+                                    <li><a class="app-rename-button" data-bind="click:window.projectframework.exportProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Export"></span></a></li>
+                                    <li><a class="app-rename-button" data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Delete"></span></a></li>
+                                </ul>
+                            </div>
+                            <h4 class="card-title" vdl-text="=project.name"></h4>
+                            <div class="card-footer"><span vdl-text="='Owner: ' + project.owner.name"></span><i class="fico-icon-users sharing-icon" vdl-if="=project.shareStatus != 'PRIVATE'" title="Shared"></i></div>
+                        </div>
+                        <div class="new-card" data-bind="click:window.projectframework.createProject.bind(window.projectframework, null), clickBubble: false">
+                            <span class="new-card-icon" vdl-text="+"></span>
+                        </div>
+                    </vdl-container>
+                    <vdl-container class="projects-container" vdl-if="=vars.layout=='table'">
+                        <div class="project-list" vdl-if="=projectframework.currentProjectFolders().length >= 1">
+                            <div id="project_table" class="">
                                 <table class="table-main row-hover">
                                     <thead>
                                         <tr>
@@ -64,29 +70,49 @@ The framework is provided as a reference example based on the &quot;campaign con
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody vdl-repeat="=folder in projectframework.currentProjectFolders()">
-                                        <tr vdl-event="click:window.projectframework.openProject.bind(window.projectframework, folder.id)">
+                                    <tbody>
+                                        <tr vdl-repeat="=folder in projectframework.currentProjectFolders()" 
+                                            vdl-event="click:window.projectframework.openProject.bind(window.projectframework, folder.id)">
+                                            
                                             <td class="displayname" vdl-text="=folder.name"></td>
                                             <td class="owner" vdl-text="=folder.owner.name"></td>
                                             <td class="actions" vdl-event="click:function() {}, clickBubble: false">
                                                 <!-- need to use data-bind directly as vdl-event doesnt support clickBubble -->
-                                                <i class="icofont-ui-edit" data-bind="click:window.projectframework.renameProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Rename Project"></vdl-tooltip></i>
-                                                <i class="icofont-copy" data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Clone Project"></vdl-tooltip></i>
-                                                <i class="icofont-share-alt" data-bind="click:window.projectframework.shareProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Share Project"></vdl-tooltip></i>
-                                                <i class="icofont-upload-alt" data-bind="click:window.projectframework.exportProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Export Project to Server"></vdl-tooltip></i>
-                                                <i class="icofont-ui-delete" data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Delete Project"></vdl-tooltip></i></td>
+                                                <i class="fico-icon-pencil" data-bind="click:window.projectframework.renameProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Rename Project"></vdl-tooltip></i>
+                                                <i class="fico-icon-copy" data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Clone Project"></vdl-tooltip></i>
+                                                <i class="fico-icon-users" data-bind="click:window.projectframework.shareProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Share Project"></vdl-tooltip></i>
+                                                <i class="fico-icon-download" data-bind="click:window.projectframework.exportProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Export Project to Server"></vdl-tooltip></i>
+                                                <i class="fico-icon-trash" data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Delete Project"></vdl-tooltip></i></td>
                                         </tr>
                                     </tbody>
                                 </table>
+                                <div class="refresh pull-right"><button class="btn btn-secondary" vdl-event="click:projectframework.refreshProjectList.bind(projectframework)">Refresh</button></div>
                             </div>
                         </div>
-                        <div class="current-projects" vdl-if="=projectframework.currentProjectFolders().length == 0"><span vdl-text="No existing projects."></span></div>
-                    </div>
-                    <!-- CONTROLS END -->
-                </vdl-column>
-                <vdl-column id="welcome_image_column" size="5">
-                    <div id="welcome_image"><img alt="fico" src="images/welcome.jpg"></div>
-                    <div id="filler"></div>
+                        <div class="project-list" vdl-if="=projectframework.currentProjectFolders().length == 0"><span vdl-text="No existing projects."></span></div>
+                        <div class="project-controls">
+                            <h4 class="create-new-project"><span vdl-text="Add a Project"></span></h2><input placeholder="Enter a project name..." type="text" id="newProjectName" class="form-control" data-bind="textInput: projectframework.newProjectName">
+                            <div class="project-open-buttons button-holder">
+                                <div class="btn-group pull-right">
+                                    <button vdl-attr="disabled: !projectframework.newProjectName()" id="createProjectButton" class="btn btn-primary create-project-btn" vdl-event="click:projectframework.createProject.bind(projectframework, $('#newProjectName').val())">
+                                        New Project
+                                    </button>
+                                    <!-- insight v4 button -->
+                                    <button vdl-if="=projectframework.apiVersion() == 1" vdl-attr="disabled: !projectframework.newProjectName()" id="importProjectButton" class="btn btn-primary import-project-btn" vdl-event="click:projectframework.importProject.bind(projectframework, $('#newProjectName').val(), 'UPLOAD')">
+                                        Import Via Upload
+                                    </button>
+                                    
+                                    <!-- insight v5 button -->
+                                    <button vdl-if="=projectframework.apiVersion() >= 2" vdl-attr="disabled: !projectframework.newProjectName()" id="importProjectButton" class="btn btn-primary import-project-btn" vdl-event="click:projectframework.importProject.bind(projectframework, $('#newProjectName').val(), 'UPLOAD')">
+                                        Import Via Upload
+                                    </button>
+                                    <button vdl-if="=projectframework.apiVersion() >=2 " vdl-attr="disabled: !projectframework.newProjectName()" id="importFromServerProjectButton" class="btn btn-primary import-project-btn" vdl-event="click:projectframework.importProject.bind(projectframework, $('#newProjectName').val(), 'SERVER')">
+                                        Import From Server
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </vdl-container>
                 </vdl-column>
             </vdl-row>
         </vdl-section>

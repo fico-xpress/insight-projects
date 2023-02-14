@@ -44,6 +44,46 @@ describe("Project framework", function () {
                 id: 'folder-id-1',
                 name: 'existing project 1',
                 objectType: 'FOLDER',
+                owner: {
+                    username: 'admin',
+                    name: "Administrator User"
+                }
+            },
+            {
+                id: 'scenario-id-1',
+                name: 'an orphan scenario',
+                objectType: 'SCENARIO',
+                owner: {
+                    username: 'admin',
+                    name: "Administrator User"
+                }
+            },
+            {
+                id: 'folder-id-2',
+                name: 'existing project 2',
+                objectType: 'FOLDER',
+                owner: {
+                    username: 'admin',
+                    name: "Administrator User"
+                }
+            },
+            {
+                id: 'folder-id-3',
+                name: 'existing project 3',
+                objectType: 'FOLDER',
+                owner: {
+                    username: 'anotheruser',
+                    name: "Another User"
+                }
+            }
+        ];
+
+    var rootChildren_v4 =
+        [
+            {
+                id: 'folder-id-1',
+                name: 'existing project 1',
+                objectType: 'FOLDER',
                 ownerId: 'admin'
             },
             {
@@ -59,12 +99,18 @@ describe("Project framework", function () {
                 ownerId: 'admin'
             }
         ];
-    var users = [
+    var users_v4 = [
         {
             _data: {
                 username: "admin",
                 displayName: "Administrator User"
             }
+        }
+    ];
+    var users = [
+        {
+                username: "admin",
+                name: "Administrator User"
         }
     ];
 
@@ -131,6 +177,13 @@ describe("Project framework", function () {
                     },
                     configure: function () {},
                     importFromServer: function() {
+                    },
+                    getUser: function () {
+                        return Promise.resolve(
+                            {
+                                getFullName: function() { return ("Administrator User");}
+                            }
+                        );
                     }
                 };
             },
@@ -644,17 +697,18 @@ describe("Project framework", function () {
     describe('_getProjects()', function () {
         var successResponse = {
             status: 200,
-            responseText: JSON.stringify({items: rootChildren})
+            responseText: JSON.stringify({items: rootChildren_v4})
         };
 
         it("Should get the list of existing project folders with V1 interface", function (done) {
             var spy = spyOn(project, "currentProjectFolders");
-            spyOn(project.app, "getUsers").and.returnValue(Promise.resolve(users));
+            spyOn(project.app, "getUsers").and.returnValue(Promise.resolve(users_v4));
             spyOn(project.api, "getVersion").and.returnValue(1);
-            spyOn(project.api, "getProjects").and.returnValue(Promise.resolve([_.cloneDeep(rootChildren[0]), _.cloneDeep(rootChildren[2])]));
+            spyOn(project.api, "getProjects").and.returnValue(Promise.resolve([_.cloneDeep(rootChildren_v4[0]), _.cloneDeep(rootChildren_v4[2])]));
 
             project._getProjects()
                 .then(function (response) {
+                    debugger;
                     expect(project.api.getProjects).toHaveBeenCalledWith(project.appId);
 
                     // mock up the user name resolution
@@ -1067,31 +1121,14 @@ describe("Project framework", function () {
         });
     });
     describe("_handleRenameConfirmation()", function () {
-        var rootChildren =
-            [
-                {
-                    id: 'folder-id-1',
-                    name: 'existing project 1',
-                    objectType: 'FOLDER'
-                },
-                {
-                    id: 'scenario-id-1',
-                    name: 'an orphan scenario',
-                    objectType: 'SCENARIO'
-                },
-                {
-                    id: 'folder-id-2',
-                    name: 'existing project 2',
-                    objectType: 'FOLDER'
-                }
-            ];
+        var children = _.cloneDeep(rootChildren_v4);
         var existingProjectScenario =
             {
                 id: 'project-scenario-id',
                 name: 'existing project 1',
                 objectType: 'SCENARIO',
                 scenarioType: 'PROJECT',
-                parent: rootChildren[0]
+                parent: rootChildren_v4[0]
             };
         var newProjectName = "renamed project";
 
@@ -1101,8 +1138,8 @@ describe("Project framework", function () {
 
         it("should accept a valid new name", function (done) {
             spyOn(project, "_getModalValue").and.returnValue("a new name");
-            spyOn(project, "currentProjectFolders").and.returnValue(rootChildren);
-            project._handleRenameConfirmation(rootChildren[0])
+            spyOn(project, "currentProjectFolders").and.returnValue(children);
+            project._handleRenameConfirmation(children[0])
                 .then(function () {
                     expect(project._renameFolderAndProjectScenario).toHaveBeenCalled();
                     expect(project.view.showErrorMessage).not.toHaveBeenCalled();
@@ -1111,8 +1148,8 @@ describe("Project framework", function () {
         });
         it("should reject a valid new name that is already in use", function (done) {
             spyOn(project, "_getModalValue").and.returnValue("existing project 2");
-            spyOn(project, "currentProjectFolders").and.returnValue(rootChildren);
-            project._handleRenameConfirmation(rootChildren[0])
+            spyOn(project, "currentProjectFolders").and.returnValue(children);
+            project._handleRenameConfirmation(children[0])
                 .then(done.fail)
                 .catch(function () {
                     expect(project._renameFolderAndProjectScenario).not.toHaveBeenCalled();
@@ -1122,8 +1159,8 @@ describe("Project framework", function () {
         });
         it("should reject an invalid name", function (done) {
             spyOn(project, "_getModalValue").and.returnValue("_new name");
-            spyOn(project, "currentProjectFolders").and.returnValue(rootChildren);
-            project._handleRenameConfirmation(rootChildren[0])
+            spyOn(project, "currentProjectFolders").and.returnValue(children);
+            project._handleRenameConfirmation(children[0])
                 .then(done.fail)
                 .catch(function () {
                     expect(project._renameFolderAndProjectScenario).not.toHaveBeenCalled();
@@ -2029,6 +2066,7 @@ describe("Project framework", function () {
                 modify: function () {
                     return this._dataChange;
                 },
+                isEditable: function() { return true; },
                 _dataChange: {
                     setScalar: function () {
                     },
@@ -2337,7 +2375,6 @@ describe("Project framework", function () {
                 var container = $("<div>");
 
                 var dialogSpy = spyOn(bootbox, "dialog").and.callThrough();
-
                 project.dom.showConfirmationDialog(container, action, title, message1, message2, callback, currentValue);
                 var config = dialogSpy.calls.all()[0].args[0];
 
@@ -2345,7 +2382,8 @@ describe("Project framework", function () {
                 expect(config.message).toMatch(message1);
                 expect(config.message).toMatch(message2);
                 expect(config.buttons.ok.callback).toEqual(callback);
-                expect(container.find(".project-actions-modal").find('#' + currentValue).prop('checked')).toBeTruthy();
+
+                expect(container.find('#' + currentValue).prop('checked')).toBeTruthy();
             });
             it("Should show a rename dialog", function () {
                 var action = "rename";

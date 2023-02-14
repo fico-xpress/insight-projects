@@ -24,6 +24,7 @@ ProjectFramework.prototype = {
     PUBLIC INTERFACE
     */
     currentProjectFolders: ko.observableArray([]),
+    currentOwnProjectFolders: ko.observableArray([]),
     newProjectName: ko.observable(),
     showLoadingOverlay: ko.observable(),
     shelfValid: ko.observable(false),
@@ -42,56 +43,32 @@ ProjectFramework.prototype = {
     },
 
     // Create a new project and open it
-    createProject: function createProject(newProjectName) {
+    createProject: function(newProjectName) {
         var self = this;
-        var newScenario;
-        var newFolder;
-
-        newProjectName = newProjectName.trim();
-        if (!self._validateProjectName(newProjectName)) {
-            self.view.showErrorMessage('\"' + newProjectName + '\" is not a valid name for a project.');
-            return Promise.reject();
+        
+        console.log(newProjectName);
+        // if a name has been supplied
+        if (newProjectName) {
+            newProjectName = newProjectName.trim();
+            return self._createProject(newProjectName);
         }
-
-        // check if the chosen name is already in use
-        var namingConflict = false;
-        $.each(self.currentProjectFolders(), function(i, v) {
-            if (v.name == newProjectName) {
-                self.view.showErrorMessage("Cannot create. A project exists with the same name");
-                namingConflict = true;
-            }
-        });
-
-        if (namingConflict)
-            return Promise.reject();
-
-        return self.api.createRootFolder(self.app, newProjectName)
-            .then(function(folder) {
-                newFolder = folder;
-                return self.api.createScenario(self.app, folder, folder.name, self.config.projectScenarioType);
-            })
-            .then(function(scenario) {
-                newScenario = scenario;
-                return self.view.executeScenario(scenario.id, insight.enums.ExecutionType.LOAD, {
-                    suppressClearPrompt: true
-                });
-            })
-            .then(function() {
-                return self._moveToProject(newScenario);
-            })
-            .catch(function(error) {
-                self.view.showErrorMessage('Failed to create project');
-
-                // attempt to clean up
-                if (newFolder)
-                    self.api.deleteFolder(newFolder.id);
-
-                return Promise.reject();
-            });
+        else {
+            // launch the create dialog
+            self.dom.showConfirmationDialog(
+                $("body"),
+                "create",
+                "Create Project",
+                "",
+                "",
+                self._handleCreateConfirmation.bind(self),
+                ""
+            );
+        }
     },
+    
 
     // Open existing project
-    openProject: function openProject(projectFolderId) {
+    openProject: function(projectFolderId) {
         var self = this;
 
         return self._getProjectScenarioForFolder(projectFolderId)
@@ -248,6 +225,10 @@ ProjectFramework.prototype = {
 
     _getProjects: function() {
         var self = this;
+        
+        console.log(self.api.getVersion());
+
+        debugger;
         return self.api.getProjects(self.appId)
             .then(function(projects) {
                 // v4 needs username to user name resolution
@@ -262,17 +243,56 @@ ProjectFramework.prototype = {
                                 projects[i].owner = {
                                     name: users[projects[i].ownerId]
                                 };
-
-                            // flush the existing list
-                            self.currentProjectFolders([]);
-                            self.currentProjectFolders(projects);
+                            
                             return projects;
                         });
-                else {
+                else
+                    return projects;
+            })
+            // then fetch any additional attributes for each project
+            .then(projects => {
+                if (self.config.projectAttributes && self.config.projectAttributes.length > 0) {
+                    var attrFetches = [];
+                    // for each project
+                    for (let i = 0; i < projects.length; i++) {
+                        // get the project scenario id
+                        var promise = self._getProjectScenarioForFolder(projects[i].id)
+                            .then(scenario => {
+                                return self.api.getScenarioEntities(scenario.id, self.config.projectAttributes)
+                            })
+                            .then(attribs => {
+                                projects[i]["attributes"] = attribs;
+                                return projects[i];
+                            });
+                        attrFetches.push(promise);
+                    }
+                    
+                    // wait for all the queries and return the augmented project list
+                    return Promise.all(attrFetches)
+                        .then(() => projects);
+                }
+                else
+                    return projects;
+                
+            })
+            // then compute the list of projects owned by the current user
+            .then(projects => {
+                debugger;
+                return self.view.getUser()
+                .then(currentUser => {
+                    var owned = [];
+                    for (var i = 0; i < projects.length; i++)
+                        if (projects[i].owner.name === currentUser.getFullName())
+                            owned.push(projects[i]);
+                 
+                    // and update the lists
                     self.currentProjectFolders([]);
                     self.currentProjectFolders(projects);
+                    self.currentOwnProjectFolders([]);
+                    self.currentOwnProjectFolders(owned);
+
                     return projects;
-                }
+                })
             })
             .catch(function(error) {
                 self.view.showErrorMessage('Unexpected error fetching projects list');
@@ -320,6 +340,75 @@ ProjectFramework.prototype = {
                 folderIndex = i;
 
         return projectFolders[folderIndex];
+    },
+    _handleCreateConfirmation: function(event) {
+        var self = this;
+        var newName = self._getModalValue(event);
+
+        if (!self._validateProjectName(newName)) {
+            self.view.showErrorMessage('\"' + newName + '\" is not a valid name for a project.');
+            return Promise.reject();
+        }
+
+        // check if the chosen name is already in use
+        var namingConflict = false;
+        $.each(self.currentProjectFolders(), function(i, v) {
+            if (v.name == newName) {
+                self.view.showErrorMessage("Cannot rename. A project exists with the same name");
+                namingConflict = true;
+            }
+        });
+
+        if (!namingConflict)
+            return self._createProject( newName);
+        else
+            return Promise.reject();
+    },
+    _createProject: function(newProjectName) {
+        var self=this;
+        var newScenario;
+        var newFolder;
+        
+        if (!self._validateProjectName(newProjectName)) {
+            self.view.showErrorMessage('\"' + newProjectName + '\" is not a valid name for a project.');
+            return Promise.reject();
+        }
+
+        // check if the chosen name is already in use
+        var namingConflict = false;
+        $.each(self.currentProjectFolders(), function(i, v) {
+            if (v.name == newProjectName) {
+                self.view.showErrorMessage("Cannot create. A project exists with the same name");
+                namingConflict = true;
+            }
+        });
+
+        if (namingConflict)
+            return Promise.reject();
+
+        return self.api.createRootFolder(self.app, newProjectName)
+            .then(function(folder) {
+                newFolder = folder;
+                return self.api.createScenario(self.app, folder, folder.name, self.config.projectScenarioType);
+            })
+            .then(function(scenario) {
+                newScenario = scenario;
+                return self.view.executeScenario(scenario.id, insight.enums.ExecutionType.LOAD, {
+                    suppressClearPrompt: true
+                });
+            })
+            .then(function() {
+                return self._moveToProject(newScenario);
+            })
+            .catch(function(error) {
+                self.view.showErrorMessage('Failed to create project');
+
+                // attempt to clean up
+                if (newFolder)
+                    self.api.deleteFolder(newFolder.id);
+
+                return Promise.reject();
+            });
     },
     _handleCloneConfirmation: function(projectFolderId, event) {
         var self = this;
@@ -416,7 +505,11 @@ ProjectFramework.prototype = {
     _getModalValue: function(event) {
         var modal = $(event.target).parents('.modal');
         var name = modal.find('.dialogValue').val();
-        return name.trim();
+        
+        //console.log(name);
+        var trimmed = name.trim();
+        //console.log(trimmed);
+        return trimmed;
     },
     _handleRenameConfirmation: function(projectFolderId, event) {
         var self = this;
@@ -742,8 +835,20 @@ ProjectFramework.prototype = {
             }
 
             var body;
+            var customclass;
             switch (action) {
+                case "create":
+                    customclass = "create-dialog";
+                    body = '<div><p>' + message1 + '</p>' +
+                        '<form id="modal-form" class="form-horizontal">' +
+                        '<div class="form-group">' +
+                        '<label for="newProjectName" class="control-label col-sm-3">Project Name</label>' +
+                        '<div class="col-sm-9">' +
+                        '<input type="text" class="dialogValue form-control" value="">' +
+                        '</div></div></form><div>' + message2 + '</div></div>';
+                    break;
                 case "share":
+                    customclass = "share-dialog";
                     body = '<div><p>' + message1 + '</p>' +
                         '<p><form id="modal-form">' +
                         '<div class="radio"><label><input type="radio" name="dialogValue" class="dialogValue" id="SHARE_PRIVATE" value="SHARE_PRIVATE">Don\'t share this project</label></div>' +
@@ -753,7 +858,17 @@ ProjectFramework.prototype = {
                         '<div>' + message2 + '</div>';
                     break;
                 case "rename":
+                    customclass = "rename-dialog";
+                    body = '<div><p>' + message1 + '</p>' +
+                        '<form id="modal-form" class="form-horizontal">' +
+                        '<div class="form-group">' +
+                        '<label for="newProjectName" class="control-label col-sm-3">Project Name</label>' +
+                        '<div class="col-sm-9">' +
+                        '<input type="text" class="dialogValue form-control" value="">' +
+                        '</div></div></form><div>' + message2 + '</div></div>';
+                    break;
                 case "clone":
+                    customclass = "clone-dialog";
                     body = '<div><p>' + message1 + '</p>' +
                         '<form id="modal-form" class="form-horizontal">' +
                         '<div class="form-group">' +
@@ -763,8 +878,13 @@ ProjectFramework.prototype = {
                         '</div></div></form><div>' + message2 + '</div></div>';
                     break;
                 case "export":
-                case "delete":
+                    customclass = "export-dialog";
                     body = '<div><p>' + message1 + '</p><div style="margin-top: 10px">' + message2 + '</div></div>';
+                    break;
+                case "delete":
+                    customclass = "delete-dialog";
+                    body = '<div><p>' + message1 + '</p><div style="margin-top: 10px">' + message2 + '</div></div>';
+                    break;
             }
 
             self.confirmDialog = bootbox.dialog({
@@ -783,15 +903,16 @@ ProjectFramework.prototype = {
                     }
                 },
                 show: false,
-                className: 'project-actions-modal',
+                className: customclass,
                 onEscape: self.onEscape
             });
 
-            var modal = parent.find(".project-actions-modal");
+            var modal = parent.find("." + customclass);
             switch (action) {
                 case "share":
                     modal.find('#' + currentValue).prop('checked', true);
                     break;
+                case "create":
                 case "rename":
                 case "clone":
                     var $renderedInput = modal.find('input');
@@ -1102,7 +1223,7 @@ ProjectFramework.prototype = {
         self.importOverlayDelay = 2000;
 
         // auto detect the insight version number
-        if (typeof insight.getVersion == 'undefined' || insight.getVersion() == 4)
+        if (typeof insight.getVersion == 'undefined' || insight.getVersion() === 4 || insight.getVersion().major === 4)
             self.api = new InsightRESTAPIv1();
         else
             self.api = new InsightRESTAPI();
@@ -1137,7 +1258,8 @@ function ProjectFramework(userconfig) {
             manageView: 'Manage', // id of the project management view
             viewType: "", // type of the current view. project | scenario. Any other value means neither
             projectEntities: [], // list of project entities that impact the project revision for the current view. "all" or [entity names]
-            projectRevisionEntity: "ProjectRevision" // the entity storing the project revision
+            projectRevisionEntity: "ProjectRevision", // the entity storing the project revision,
+            projectAttributes: [] // list of entities that are fetched to augment project object for management view
         }
     });
     $.extend(self.config, userconfig);
@@ -1194,8 +1316,6 @@ OverlayExtension.prototype = {
         self.loadingOverlayMessage(message);
     }
 };
-
-
 
 // REST API interface for v1 of the REST API (Insight 4)
 function InsightRESTAPIv1() {
@@ -1429,12 +1549,19 @@ InsightRESTAPIv1.prototype = {
             });
         });
     },
-
     // dummy for testing
     exportFolder: function() {},
+    getScenarioEntities: function(scenarioId, entities) {
+        var self = this;
+        
+        var params = [];
+        for (let i=0;i<entities.length;i++)
+            params.push("name=" + entities[i]);
+        var param = params.join("&");
+        
+        return self.restRequest("scenario/" + scenarioId + "/data/entities" + "?" + param, 'GET');
+    }
 }
-
-
 
 // REST API interface for v2 of the REST API (Insight 5)
 function InsightRESTAPI() {
@@ -1727,5 +1854,21 @@ InsightRESTAPI.prototype = {
             source: projectFolder
         };
         return self.restRequest('portations/exports', 'POST', JSON.stringify(payload));
+    },
+    getScenarioEntities: function(scenarioId, entities) {
+        var self = this;
+        var payload = {
+            entityNames: entities
+        };
+        
+        return self.restRequest('scenarios/' + scenarioId + '/data', 'POST', JSON.stringify(payload))
+            .then(response => {
+                var data = {};
+                for (let j=0;j<entities.length;j++)
+                    data[entities[j]] = response.entities[entities[j]].value.toString();
+                return data;
+            });
     }
+    
+    
 }

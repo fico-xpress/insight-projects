@@ -16,6 +16,7 @@
 */
 
 @import "projectframework.css";
+@import "font.css";
 
 td.action_column {
     padding: 0px !important;

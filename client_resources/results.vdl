@@ -18,7 +18,7 @@
     <script type="text/javascript" src="js/projectframework.js"></script>
     <script type="text/javascript" src="js/results.js"></script>
 
-    <vdl-page vdl-if="=!projectframework.shelfValid() && projectframework.shelfValidationMessage()">
+    <vdl-page id="view-scenario-results" vdl-if="=!projectframework.shelfValid() && projectframework.shelfValidationMessage()">
         <vdl-section layout="fluid" class="centered-alert">
             <vdl-row>
                 <vdl-column size="12">
@@ -35,7 +35,7 @@
         </vdl-section>
     </vdl-page>
 
-    <vdl-page vdl-if="=projectframework.shelfValid()">
+    <vdl-page id="view-scenario-results" vdl-if="=projectframework.shelfValid()">
         <vdl-header>
             <script>
                 var ACTION_DISPLAY_TEXT = {
