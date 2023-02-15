@@ -24,13 +24,13 @@ class ProjectFramework {
     PUBLIC INTERFACE
     */
 
-    currentProjectFolders = VDL.createVariable([]);
-    currentOwnProjectFolders = VDL.createVariable([]);
-    newProjectName = VDL.createVariable();
-    showLoadingOverlay = VDL.createVariable();
-    shelfValid = VDL.createVariable(false);
-    shelfValidationMessage = VDL.createVariable();
-    projectRevisionMessage = VDL.createVariable();
+    currentProjectFolders = ko.observable([]);
+    currentOwnProjectFolders = ko.observable([]);
+    newProjectName = ko.observable();
+    showLoadingOverlay = ko.observable();
+    shelfValid = ko.observable(false);
+    shelfValidationMessage = ko.observable();
+    projectRevisionMessage = ko.observable();
 
     constructor (userconfig) {
         $.extend(this, {
@@ -1243,7 +1243,7 @@ class OverlayExtension {
         this.framework = parent;
         this.registerEventListeners();
     }
-    loadingOverlayMessage = VDL.createVariable('');
+    loadingOverlayMessage = ko.observable('');
     registerEventListeners() {
         var self = this;
         $(window)

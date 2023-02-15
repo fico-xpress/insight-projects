@@ -203,8 +203,9 @@ describe("Project framework", function () {
                 return 4;
             } // default to V4
         };
-        window.VDL = function () {
+        window.VDL = function() {
         };
+        window.VDL.createVariable = function(v) { return function() { return v; } }
 
         project = new ProjectFramework();
 
