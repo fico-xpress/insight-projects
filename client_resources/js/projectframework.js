@@ -19,31 +19,43 @@
 /* global $         */
 /* global _         */
 /* global ko        */
-ProjectFramework.prototype = {
+class ProjectFramework {
     /*
     PUBLIC INTERFACE
     */
-    currentProjectFolders: ko.observableArray([]),
-    currentOwnProjectFolders: ko.observableArray([]),
-    newProjectName: ko.observable(),
-    showLoadingOverlay: ko.observable(),
-    shelfValid: ko.observable(false),
-    shelfValidationMessage: ko.observable(),
-    projectRevisionMessage: ko.observable(),
 
-    // initialize the framework
-    init: function() {
+    currentProjectFolders = ko.observableArray([]);
+    currentOwnProjectFolders = ko.observableArray([]);
+    newProjectName = ko.observable();
+    showLoadingOverlay = ko.observable();
+    shelfValid = ko.observable(false);
+    shelfValidationMessage = ko.observable();
+    projectRevisionMessage = ko.observable();
+
+    constructor (userconfig) {
+        $.extend(this, {
+            // configuration defaults
+            config: {
+                projectScenarioType: "PROJECT", // custom scenario type id for project scenario type
+                defaultView: '', // the view that Open Project navigates to
+                manageView: 'Manage', // id of the project management view
+                viewType: "", // type of the current view. project | scenario. Any other value means neither
+                projectEntities: [], // list of project entities that impact the project revision for the current view. "all" or [entity names]
+                projectRevisionEntity: "ProjectRevision", // the entity storing the project revision,
+                projectAttributes: [] // list of entities that are fetched to augment project object for management view
+            }
+        });
+        $.extend(this.config, userconfig);
+    }
+    init() {
         var self = this;
         self._init();
-    },
-
-    apiVersion: function() {
+    }
+    apiVersion() {
         var self = this;
         return self.api.version;
-    },
-
-    // Create a new project and open it
-    createProject: function(newProjectName) {
+    }
+    createProject(newProjectName) {
         var self = this;
 
         // if a name has been supplied
@@ -63,32 +75,25 @@ ProjectFramework.prototype = {
                 ""
             );
         }
-    },
-    
-
-    // Open existing project
-    openProject: function(projectFolderId) {
+    }
+    openProject(projectFolderId) {
         var self = this;
 
         return self._getProjectScenarioForFolder(projectFolderId)
-            .then(function(projectScenario) {
+            .then(projectScenario => {
                 return self._moveToProject(projectScenario);
             })
-            .catch(function() {
+            .catch(() => {
                 var projectFolder = self._getProjectFolderObject(projectFolderId);
                 self.view.showErrorMessage('Failed to open project "' + projectFolder.name + '".');
                 return Promise.reject();
             });
-    },
-
-    // refresh the list of projects
-    refreshProjectList: function() {
+    }
+    refreshProjectList() {
         var self = this;
         self._getProjects();
-    },
-
-    // Rename project
-    renameProject: function(projectFolderId) {
+    }
+    renameProject(projectFolderId) {
         var self = this;
         var projectFolder = self._getProjectFolderObject(projectFolderId);
 
@@ -101,10 +106,8 @@ ProjectFramework.prototype = {
             self._handleRenameConfirmation.bind(self, projectFolderId),
             projectFolder.name
         );
-    },
-
-    // Delete project
-    deleteProject: function(projectFolderId) {
+    }
+    deleteProject(projectFolderId) {
         var self = this;
         self.dom.showConfirmationDialog(
             $("body"),
@@ -114,10 +117,8 @@ ProjectFramework.prototype = {
             "This operation cannot be undone.",
             self._deleteProject.bind(self, projectFolderId)
         );
-    },
-
-    // Clone project
-    cloneProject: function(projectFolderId) {
+    }
+    cloneProject(projectFolderId) {
         var self = this;
         var projectFolder = self._getProjectFolderObject(projectFolderId);
 
@@ -130,10 +131,8 @@ ProjectFramework.prototype = {
             self._handleCloneConfirmation.bind(self, projectFolderId),
             projectFolder.name + " - copy"
         );
-    },
-
-    // Export project
-    exportProject: function(projectFolderId) {
+    }
+    exportProject(projectFolderId) {
         var self = this;
         var projectFolder = self._getProjectFolderObject(projectFolderId);
 
@@ -144,10 +143,8 @@ ProjectFramework.prototype = {
             "Are you sure you wish to export this project?",
             'This action will export the project settings and all scenarios.',
             self._exportProject.bind(self, projectFolder));
-    },
-
-    // Import project
-    importProject: function(newProjectName, origin) {
+    }
+    importProject(newProjectName, origin) {
         var self = this;
 
         newProjectName = newProjectName.trim();
@@ -156,10 +153,8 @@ ProjectFramework.prototype = {
             return Promise.reject();
         }
         return self._importProject(newProjectName, origin);
-    },
-
-    // Check the shelf is properly configured with project [ and optionally scenarios]
-    validateShelf: function(pagetype, scenarios) {
+    }
+    validateShelf(pagetype, scenarios) {
         var self = this;
         var response = {};
 
@@ -176,15 +171,14 @@ ProjectFramework.prototype = {
                 break;
         }
         return response;
-    },
-
-    shareProject: function(projectFolderId) {
+    }
+    shareProject(projectFolderId) {
         var self = this;
 
         var projectFolder = self._getProjectFolderObject(projectFolderId);
 
         return self._getProjectScenarioForFolder(projectFolderId)
-            .then(function(projectScenario) {
+            .then(projectScenario => {
                 // possible share combinations
                 var folderTargetShare = projectFolder.shareStatus;
                 var projectTargetShare = projectScenario.shareStatus;
@@ -211,26 +205,26 @@ ProjectFramework.prototype = {
                     currentShare
                 );
             });
-    },
-    goToManageView: function() {
+    }
+    goToManageView() {
         var self = this;
         insight.openView(self.config.manageView);
-    },
+    }
 
     /*
     PRIVATE
     */
-    projectRevision: 0,
+    projectRevision = 0;
 
-    _getProjects: function() {
+    _getProjects() {
         var self = this;
 
         return self.api.getProjects(self.appId)
-            .then(function(projects) {
+            .then((projects) => {
                 // v4 needs username to user name resolution
                 if (self.api.getVersion() === 1)
                     return self.app.getUsers()
-                        .then(function(response) {
+                        .then(response => {
                             var users = {};
                             for (var i = 0; i < response.length; i++)
                                 users[response[i]._data.username] = response[i]._data.displayName;
@@ -289,18 +283,18 @@ ProjectFramework.prototype = {
                     return projects;
                 })
             })
-            .catch(function(error) {
+            .catch(error => {
                 self.view.showErrorMessage('Unexpected error fetching projects list');
                 throw error;
             });
-    },
-    _moveToProject: function(projectScenario) {
+    }
+    _moveToProject(projectScenario) {
         var self = this;
 
         self.view.setShelf([projectScenario.id]);
         insight.openView(this.config.defaultView);
-    },
-    _getProjectScenarioForFolder: function(folderId) {
+    }
+    _getProjectScenarioForFolder(folderId) {
         var self = this;
 
         if (!folderId) {
@@ -308,7 +302,7 @@ ProjectFramework.prototype = {
             return Promise.reject();
         }
         return self.api.getChildren(folderId)
-            .then(function(children) {
+            .then(children => {
                 var found;
                 for (var i = 0; i < children.length; i++)
                     if (children[i].scenarioType === self.config.projectScenarioType)
@@ -317,15 +311,15 @@ ProjectFramework.prototype = {
                     return found;
                 else
                     throw new Error;
-            }).catch(function() {
+            }).catch(() => {
                 self.view.showErrorMessage('This doesn\'t look like a project folder.');
                 return Promise.reject();
             });
-    },
-    _validateProjectName: function(newProjectName) {
+    }
+    _validateProjectName(newProjectName) {
         return !(!newProjectName || newProjectName.indexOf("_") === 0);
-    },
-    _getProjectFolderObject: function(projectFolderId) {
+    }
+    _getProjectFolderObject(projectFolderId) {
         var self = this;
         var projectFolders = this.currentProjectFolders();
 
@@ -335,8 +329,8 @@ ProjectFramework.prototype = {
                 folderIndex = i;
 
         return projectFolders[folderIndex];
-    },
-    _handleCreateConfirmation: function(event) {
+    }
+    _handleCreateConfirmation(event) {
         var self = this;
         var newName = self._getModalValue(event);
 
@@ -347,7 +341,7 @@ ProjectFramework.prototype = {
 
         // check if the chosen name is already in use
         var namingConflict = false;
-        $.each(self.currentProjectFolders(), function(i, v) {
+        $.each(self.currentProjectFolders(), (i, v) => {
             if (v.name === newName) {
                 self.view.showErrorMessage("Cannot create. A project exists with the same name");
                 namingConflict = true;
@@ -358,8 +352,8 @@ ProjectFramework.prototype = {
             return self._createProject( newName);
         else
             return Promise.reject();
-    },
-    _createProject: function(newProjectName) {
+    }
+    _createProject(newProjectName) {
         var self=this;
         var newScenario;
         var newFolder;
@@ -371,7 +365,7 @@ ProjectFramework.prototype = {
 
         // check if the chosen name is already in use
         var namingConflict = false;
-        $.each(self.currentProjectFolders(), function(i, v) {
+        $.each(self.currentProjectFolders(), (i, v) => {
             if (v.name === newProjectName) {
                 self.view.showErrorMessage("Cannot create. A project exists with the same name");
                 namingConflict = true;
@@ -382,20 +376,20 @@ ProjectFramework.prototype = {
             return Promise.reject();
 
         return self.api.createRootFolder(self.app, newProjectName)
-            .then(function(folder) {
+            .then(folder => {
                 newFolder = folder;
                 return self.api.createScenario(self.app, folder, folder.name, self.config.projectScenarioType);
             })
-            .then(function(scenario) {
+            .then(scenario => {
                 newScenario = scenario;
                 return self.view.executeScenario(scenario.id, insight.enums.ExecutionType.LOAD, {
                     suppressClearPrompt: true
                 });
             })
-            .then(function() {
+            .then(() => {
                 return self._moveToProject(newScenario);
             })
-            .catch(function(error) {
+            .catch((error) => {
                 self.view.showErrorMessage('Failed to create project');
 
                 // attempt to clean up
@@ -404,14 +398,14 @@ ProjectFramework.prototype = {
 
                 return Promise.reject();
             });
-    },
-    _handleCloneConfirmation: function(projectFolderId, event) {
+    }
+    _handleCloneConfirmation(projectFolderId, event) {
         var self = this;
 
         var newName = self._getModalValue(event);
         self._cloneFolderAndProjectScenario(projectFolderId, newName);
-    },
-    _cloneFolderAndProjectScenario: function(projectFolderId, newName) {
+    }
+    _cloneFolderAndProjectScenario(projectFolderId, newName) {
         var self = this;
 
         if (!self._validateProjectName(newName)) {
@@ -421,7 +415,7 @@ ProjectFramework.prototype = {
 
         // check if the chosen name is already in use
         var namingConflict = false;
-        $.each(self.currentProjectFolders(), function(i, v) {
+        $.each(self.currentProjectFolders(), (i, v) => {
             if (v.name === newName) {
                 self.view.showErrorMessage("Cannot clone. A project exists with the same name");
                 namingConflict = true;
@@ -436,18 +430,18 @@ ProjectFramework.prototype = {
         var newFolder;
         // attempt to create the folder with name newName
         return self.api.createRootFolder(self.app, newName)
-            .then(function(folder) {
+            .then(folder => {
                 // name may have been decorated
                 actualNewName = folder.name;
                 newFolder = folder;
                 return self._getProjectScenarioForFolder(projectFolderId)
             })
             // copy the project scenario into the new folder as the new actual name
-            .then(function(projectScenario) {
+            .then(projectScenario => {
                 return self.api.cloneScenario(projectScenario.id, newFolder, actualNewName);
             })
             // all good
-            .then(function() {
+            .then(() => {
                 var successMessage = '';
 
                 // there is a very small chance that a folder of the required name was created between the name conflict check and the folder create
@@ -461,17 +455,17 @@ ProjectFramework.prototype = {
                 self.view.showInfoMessage(successMessage);
                 return Promise.resolve();
             })
-            .catch(function() {
+            .catch(() => {
                 // something went wrong
                 // if we created a folder, delete it
                 if (newFolder) {
                     return self.api.deleteFolder(newFolder.id)
-                        .then(function() {
+                        .then(() => {
                             // managed to clean up
                             self.view.showErrorMessage('Failed to clone project "' + projectFolder.name + '". Changes were rolled back.');
                             return Promise.reject();
                         })
-                        .catch(function(error) {
+                        .catch(error => {
                             // failed to clean up
                             self.view.showErrorMessage('Failed to clone project "' + projectFolder.name + '". A folder for this new project was created, you can delete it using the Scenario Explorer.');
                             return Promise.reject();
@@ -481,32 +475,30 @@ ProjectFramework.prototype = {
                     return Promise.reject();
                 }
             });
-    },
-    _deleteProject: function(projectFolderId) {
+    }
+    _deleteProject(projectFolderId) {
         var self = this;
 
         var projectFolder = self._getProjectFolderObject(projectFolderId);
         return self.api.deleteFolder(projectFolderId)
-            .then(function(data) {
+            .then(data => {
                 self.view.showInfoMessage('Project "' + projectFolder.name + '" successfully deleted.');
                 self._getProjects();
                 return Promise.resolve();
-            }).catch(function(message) {
+            }).catch(message => {
                 self.view.showErrorMessage('Failed to delete project "' + projectFolder.name + '". No changes have been made.');
                 self._getProjects();
                 return Promise.reject();
             });
-    },
-    _getModalValue: function(event) {
+    }
+    _getModalValue(event) {
         var modal = $(event.target).parents('.modal');
         var name = modal.find('.dialogValue').val();
         
-        //console.log(name);
         var trimmed = name.trim();
-        //console.log(trimmed);
         return trimmed;
-    },
-    _handleRenameConfirmation: function(projectFolderId, event) {
+    }
+    _handleRenameConfirmation(projectFolderId, event) {
         var self = this;
         var newName = self._getModalValue(event);
 
@@ -517,7 +509,7 @@ ProjectFramework.prototype = {
 
         // check if the chosen name is already in use
         var namingConflict = false;
-        $.each(self.currentProjectFolders(), function(i, v) {
+        $.each(self.currentProjectFolders(), (i, v) => {
             if (v.name === newName) {
                 self.view.showErrorMessage("Cannot rename. A project exists with the same name");
                 namingConflict = true;
@@ -528,45 +520,45 @@ ProjectFramework.prototype = {
             return self._renameFolderAndProjectScenario(projectFolderId, newName);
         else
             return Promise.reject();
-    },
-    _renameFolderAndProjectScenario: function(projectFolderId, newName) {
+    }
+    _renameFolderAndProjectScenario(projectFolderId, newName) {
         var self = this;
 
-        return self._getProjectScenarioForFolder(projectFolderId).then(function(projectScenario) {
+        return self._getProjectScenarioForFolder(projectFolderId).then(projectScenario =>  {
             var previousName = projectScenario.name; // for rollback
 
             // try to rename the project scenario inside first
             return self.api.renameScenario(projectScenario.id, newName)
-                .then(function(value) {
+                .then(value => {
                     return self.api.renameFolder(projectFolderId, newName)
-                        .then(function(value) {
+                        .then(value => {
                             self.view.showInfoMessage('Project successfully renamed from "' + previousName + '" to "' + newName + '".');
                             self._getProjects();
-                        }).catch(function() {
+                        }).catch(() => {
                             var errormsg = "Failed to rename the project folder but could not roll back action. To correct this error state please rename your project again.";
                             return self.api.renameScenario(projectScenario.id, previousName)
-                                .then(function() {
+                                .then(() => {
                                     errormsg = "Failed to rename the project folder. Action rolled back.";
                                     return Promise.reject();
-                                }).catch(function() {
+                                }).catch(() => {
                                     self.view.showErrorMessage(errormsg);
                                     return Promise.reject();
                                 });
                         });
                 });
-        }).catch(function() {
+        }).catch(() => {
             self.view.showErrorMessage("Failed to rename the project. Action rolled back.");
             return Promise.reject();
         });
-    },
-    _handleShareConfirmation: function(projectFolderId, event) {
+    }
+    _handleShareConfirmation(projectFolderId, event) {
         var self = this;
 
         var modal = $(event.originalEvent.target).parents('.modal');
         var shareMode = modal.find("input[name='dialogValue']:checked").val();
         self._shareProject(projectFolderId, shareMode);
-    },
-    _shareProject: function(projectFolderId, newShare) {
+    }
+    _shareProject(projectFolderId, newShare) {
         var self = this;
 
         var projectFolder = self._getProjectFolderObject(projectFolderId);
@@ -592,34 +584,34 @@ ProjectFramework.prototype = {
         }
 
         return self._getProjectScenarioForFolder(projectFolderId)
-            .then(function(projectScenario) {
+            .then(projectScenario => {
                 var previousMode = projectScenario.shareStatus;
 
                 return self.api.shareScenario(projectScenario.id, projectTargetShare)
-                    .then(function() {
+                    .then(() => {
                         return self.api.shareFolder(projectFolderId, folderTargetShare)
-                            .then(function() {
+                            .then(() => {
                                 // invalidate and refresh the information we have cached for the project
                                 self._getProjects();
                                 self.view.showInfoMessage('Project share status updated');
-                            }).catch(function() {
+                            }).catch(() => {
                                 var errormsg = "Failed to change share status for project folder but could not rollback. To correct this error state please set the share status directly.";
                                 return self.api.shareScenario(projectScenario.id, previousMode)
-                                    .then(function() {
+                                    .then(() => {
                                         errormsg = "Failed to change share status for project folder. Action rolled back.";
                                         throw new Error;
-                                    }).catch(function() {
+                                    }).catch(() => {
                                         self.view.showErrorMessage(errormsg);
                                         return Promise.reject();
                                     });
                             });
                     });
-            }).catch(function() {
+            }).catch(() => {
                 self.view.showErrorMessage("Failed to change the project share status.");
                 return Promise.reject();
             });
-    },
-    _exportProject: function(projectFolder) {
+    }
+    _exportProject(projectFolder) {
         var self = this;
         if (self.api.getVersion() === 1) {
             // syncronous browser download for Insight 4 servers
@@ -628,15 +620,15 @@ ProjectFramework.prototype = {
         } else {
             // async export to server location for Insight 5
             return self.api.exportFolder(projectFolder)
-                .then(function() {
+                .then(() => {
                     self.view.showInfoMessage('Exporting project \'' + projectFolder.name + '\'. See Tasks Dialog for status.');
                 })
-                .catch(function() {
+                .catch(() => {
                     self.view.showErrorMessage('Failed to export project \'' + projectFolder.name + '\'');
                 });
         }
-    },
-    _importProject: function(projectName, origin) {
+    }
+    _importProject(projectName, origin) {
         var self = this;
         // a unique name for the working folder
         var workingFolderName = "projectImport_" + Date.now();
@@ -645,33 +637,33 @@ ProjectFramework.prototype = {
         // prompt the user for a file selection
         if (origin === "UPLOAD")
             return self.dom.promptFileUpload($("body")) // returns array of files
-                .then(function(files) {
+                .then(files => {
 
                     // obscure the view with the import-in-progress custom overlay
                     self.dom.trigger('project.overlay.show', 'Importing Project');
 
                     // next create the working folder
                     return self.api.createRootFolder(self.app, workingFolderName)
-                        .then(function(folder) {
+                        .then(folder => {
                             workingFolder = folder;
                         })
-                        .then(function() {
+                        .then(() => {
                             return self.api.uploadImportFile(workingFolder, files)
                         })
-                        .then(function(imported) {
+                        .then(imported => {
                             // need to do some renaming and moving into the final position
                             return self._handleImportedProject(projectName, workingFolder, imported);
                         })
-                        .then(function(projectScenario) {
+                        .then(projectScenario => {
                             // we have finished
 
                             // first delete the working folder
                             return self._cleanupWorkingFolder(workingFolder.id)
-                                .then(function() {
+                                .then(() => {
                                     self.dom.trigger('project.overlay.setMessage', 'Project Import Complete');
                                     // wait 2 seconds then wrap up
-                                    return new Promise(function(resolve, reject) {
-                                        setTimeout(function() {
+                                    return new Promise((resolve, reject) => {
+                                        setTimeout(() => {
                                             self.dom.trigger('project.overlay.hide');
                                             self._moveToProject(projectScenario);
                                             self.view.showInfoMessage('Project imported successfully as "' + projectScenario.name + '"');
@@ -681,39 +673,39 @@ ProjectFramework.prototype = {
                                 });
                         })
                 })
-                .catch(function(error) {
+                .catch(error => {
                     return self._handleUpgradeErrors(workingFolder ? workingFolder.id : undefined, error);
                 });
 
         if (origin === "SERVER")
             return self.api.createRootFolder(self.app, workingFolderName)
-                .then(function(folder) {
+                .then(folder => {
                     workingFolder = folder;
                     return folder;
                 })
-                .then(function() {
+                .then(() => {
                     return self.view.importFromServer(workingFolder.id, "FOLDER");
                 })
-                .then(function(portationId) {
+                .then( portationId => {
                     // obscure the view with the import-in-progress custom overlay
                     self.dom.trigger('project.overlay.show', 'Importing Project');
 
                     return self.api.waitForUpload(portationId);
                 })
-                .then(function(imported) {
+                .then(imported => {
                     // need to do some renaming and moving into the final position
                     return self._handleImportedProject(projectName, workingFolder, imported);
                 })
-                .then(function(projectScenario) {
+                .then(projectScenario => {
                     // we have finished
 
                     // first delete the working folder
                     return self._cleanupWorkingFolder(workingFolder.id)
-                        .then(function() {
+                        .then(() => {
                             self.dom.trigger('project.overlay.setMessage', 'Project Import Complete');
                             // wait 2 seconds then wrap up
-                            return new Promise(function(resolve, reject) {
-                                setTimeout(function() {
+                            return new Promise((resolve, reject) => {
+                                setTimeout(() => {
                                     self.dom.trigger('project.overlay.hide');
                                     self._moveToProject(projectScenario);
                                     self.view.showInfoMessage('Project imported successfully as "' + projectScenario.name + '"');
@@ -722,17 +714,17 @@ ProjectFramework.prototype = {
                             });
                         });
                 })
-                .catch(function(error) {
+                .catch(error => {
                     return self._handleUpgradeErrors(workingFolder ? workingFolder.id : undefined, error);
                 });
-    },
+    }
     // clean up working folder after import
-    _cleanupWorkingFolder: function(workingFolderId) {
+    _cleanupWorkingFolder(workingFolderId) {
         var self = this;
         return self.api.deleteFolder(workingFolderId);
-    },
+    }
     // handle the error and return a rejected promise in all cases
-    _handleUpgradeErrors: function(workingFolderId, reason) {
+    _handleUpgradeErrors(workingFolderId, reason) {
         var self = this;
         reason = reason || 'Unexpected error during project import.';
 
@@ -744,18 +736,18 @@ ProjectFramework.prototype = {
         if (workingFolderId) {
             var errormsg = 'The import was not rolled back, to correct this, delete the folder from the scenario explorer.';
             return self.api.deleteFolder(workingFolderId)
-                .then(function() {
+                .then(() => {
                     errormsg = 'The import was rolled back.';
                     throw new Error();
-                }).catch(function() {
+                }).catch(() => {
                     self.view.showErrorMessage(errormsg);
                     return Promise.reject();
                 });
         } else {
             return Promise.reject();
         }
-    },
-    _handleImportedProject: function(desiredProjectName, workingFolder, projectImport) {
+    }
+    _handleImportedProject(desiredProjectName, workingFolder, projectImport) {
         var self = this;
 
         // number of scenarios created by the import
@@ -783,8 +775,8 @@ ProjectFramework.prototype = {
             return Promise.reject("Error during project import. The imported file contains more than one project folder");
 
         return self._handleImportedFolder(projectRootFolders[0], projectScenarios[0], desiredProjectName);
-    },
-    _handleImportedFolder: function(projectFolder, projectScenario, desiredProjectName) {
+    }
+    _handleImportedFolder(projectFolder, projectScenario, desiredProjectName) {
         var self = this;
         // rename the project folder first, then move it
         // on moving, the name might be decorated if there is a collision
@@ -792,36 +784,283 @@ ProjectFramework.prototype = {
 
         // rename the project folder to desired name
         return self.api.renameFolder(projectFolder.id, desiredProjectName)
-            .then(function() {
+            .then(() => {
                 projectFolder.name = desiredProjectName;
                 // move the folder to the root
                 return self.api.moveFolderToRoot(self.appId, projectFolder)
-                    .then(function(newProjectFolder) {
+                    .then(newProjectFolder => {
                         // rename project scenario to match the final (possibly decorated) name of the project folder
                         projectScenario.name = newProjectFolder.name;
                         return self.api.renameScenario(projectScenario.id, projectScenario.name)
-                            .then(function() {
+                            .then(() => {
                                 return projectScenario;
                             });
                     });
             })
-            .catch(function() {
+            .catch(() => {
                 // failed to rename the folder
                 self.view.showErrorMessage("Failed to rename the imported project to " + desiredProjectName);
                 return Promise.reject();
             });
-    },
-    dom: {
+    }
+    _validateForProjectPage(scenarios) {
+        var self = this;
+        var projectPath = '';
+        var foundProject = false;
+        var foundProjectDetails = null;
+        var tooManyProjects = false;
+        var errorType = null;
+
+        var invalidScenarios = [];
+        var invalidProjects = [];
+
+        var validationmsg;
+
+        for (var i = 0; i < scenarios.length; i++) {
+            if (scenarios[i].getScenarioType() === self.config.projectScenarioType) {
+                if (!foundProject) {
+                    foundProject = true;
+                    foundProjectDetails = scenarios[i];
+                } else {
+                    invalidProjects.push(scenarios[i].getName());
+                    errorType = 'tooManyProjects';
+                }
+            }
+
+            if (errorType !== 'tooManyProjects') {
+                if (i === 0) {
+                    if (scenarios[i].getScenarioType() === self.config.projectScenarioType) {
+                        var escapedProjectName = scenarios[i].getName().replace(/\\/g, '\\\\').replace(/\//g, '\\/');
+                        var projectNamePlusSlashLength = escapedProjectName.length + 1;
+                        projectPath = scenarios[i].getPath().substring(0, scenarios[i].getPath().length - projectNamePlusSlashLength);
+                    } else {
+                        errorType = 'projectInWrongPos';
+                    }
+                } else {
+                    var pathIndex = scenarios[i].getPath().indexOf(projectPath);
+                    var endOfPath = pathIndex + projectPath.length;
+
+                    if (pathIndex < 0 || scenarios[i].getPath().charAt(endOfPath) !== '/') {
+                        invalidScenarios.push(scenarios[i].getName());
+                        errorType = 'incompatibleScenarios';
+                    }
+                }
+            }
+
+        }
+
+        if (!foundProject) {
+            errorType = 'noProjectScenario';
+        }
+
+        switch (errorType) {
+            case 'noProjectScenario':
+                validationmsg = 'There is no active project. Please return to the Manage Projects page and create or open a project.';
+                break;
+            case 'tooManyProjects':
+                invalidProjects.unshift(foundProjectDetails.getName());
+                validationmsg = 'You have added the following project' + ((invalidProjects.length > 1) ? 's' : '') + ' to the shelf: "' + invalidProjects.join('", "') + '". Please ensure that you only have one project scenario and that it is in the first position.';
+                break;
+            case 'incompatibleScenarios':
+                validationmsg = 'There are scenarios from different projects other than "' + foundProjectDetails.getName() + '" on the shelf. Please remove the following scenario' + ((invalidScenarios.length > 1) ? 's: ' : ': "') + invalidScenarios.join('", "') + '".';
+                break;
+            case 'projectInWrongPos':
+                validationmsg = 'Project "' + foundProjectDetails.getName() + '" is not in the correct shelf position. Please place it into the first position on the shelf.';
+                break;
+            default:
+                validationmsg = "";
+        }
+
+        return validationmsg;
+    }
+    _validateForScenarioPage(scenarios, neededScenarioTypes) {
+        var self = this;
+
+        // a scenario page requirements is a superset of a project page requirements
+        var projectvalidation = self._validateForProjectPage(scenarios);
+        if (projectvalidation)
+            return projectvalidation;
+
+        // if match not specificed then all
+        if (!neededScenarioTypes) {
+            neededScenarioTypes = '*';
+        }
+
+        // must be at least one scenario as well as the project scenario
+        if (scenarios.length === 1)
+            return 'This view requires at least one scenario to be selected. Create a new scenario or select an existing scenario by clicking on the grey scenario shelf above.';
+
+        // the extra scenarios must be of the required type
+        var count = 0;
+        for (var i = 1; i < scenarios.length; i++) {
+            if (neededScenarioTypes === '*') {
+                count++;
+            } else {
+                var index = neededScenarioTypes.indexOf(scenarios[i].getScenarioType());
+
+                if (index > -1) {
+                    count++;
+                }
+            }
+        }
+        // found no scenarios that meet type requirements
+        if (count === 0)
+            return 'To view this information please create a new scenario or select an existing scenario of the required type by clicking on the grey scenario shelf above.';
+
+        // no validation errors
+        return "";
+    }
+    _initShelfValidation() {
+        var self = this;
+        // if the shelf is empty its not valid
+        if (self.view.getScenarioIds().length === 0) {
+            self.shelfValidationMessage({
+                text: 'There is no active project. Please create or open a project.',
+                showNav: true,
+            });
+            self.shelfValid(false);
+        } else {
+            // shelf validation
+            self.view
+                .withAllScenarios()
+                .withSummaryData()
+                .once(scenarios => {
+                    var msg;
+                    if (self.config.viewType.toLowerCase() === "project")
+                        msg = self.validateShelf('project', scenarios);
+                    else if (self.config.viewType.toLowerCase() === "scenario")
+                        msg = self.validateShelf('scenario', scenarios);
+
+                    // else no validation required
+                    if (msg) {
+                        self.shelfValidationMessage({
+                            text: msg
+                        });
+                        self.shelfValid(false);
+                    } else {
+                        self.shelfValidationMessage();
+                        self.shelfValid(true);
+
+                        self._initProjectRevisionTracking();
+                    }
+                })
+                .start();
+        }
+    }
+    _initProjectRevisionTracking() {
+        var self = this;
+
+        // observe the project entities that the project revision is impacted by
+        var entities;
+        if (self.config.projectEntities === "all")
+            entities = self.app.getModelSchema().getAllEntities();
+        else
+            entities = self.config.projectEntities;
+
+        // if there are entities that the project revision is impacted by
+        if (entities.length > 0) {
+            // make sure we get the project revision too
+            entities = entities.concat([self.config.projectRevisionEntity]);
+            self.view
+                .withFirstScenario()
+                .withEntities(entities)
+                .notify(self._handleProjectEntityChangeNotification.bind(self))
+                .start();
+        };
+
+        // do a revision check and collate a message if inconsistent
+        // project revision is an incrementing randomly seeded number
+        // newly loaded scenarios default to zero
+        // a scenario is dirty when its revision is not zero and not the same as the project
+        // but only if there is at least one scenairo on the shelf, to avoid a built in warning about requiring scenarios
+        if (self.view.getScenarioIds().length > 0)
+            self.view
+            .withAllScenarios()
+            .withEntities([self.config.projectRevisionEntity])
+            .notify(self._handleProjectRevisionChangeNotification.bind(self))
+            .start();
+    }
+    _handleProjectEntityChangeNotification(scenario) {
+        var self = this;
+
+        // if our project revision is zero this is a page load first fetch
+        // so capture the current revision value
+        if (self.projectRevision === 0)
+            self.projectRevision = scenario.getScalar(self.config.projectRevisionEntity);
+        // if our project revision is different to the incoming value
+        else if (self.projectRevision !== scenario.getScalar(self.config.projectRevisionEntity))
+            // another user or mosel caused it to change so store it
+            self.projectRevision = scenario.getScalar(self.config.projectRevisionEntity);
+        else if (scenario.isEditable()) {
+            // dont increment revision on a notify caused by execution status change. use editable flag to determine its a data change event
+            
+            // our current user caused the data to change, so increment the project revision
+            var dataChange = scenario.modify();
+            self.projectRevision++;
+            dataChange.setScalar(self.config.projectRevisionEntity, self.projectRevision);
+            dataChange.commit();
+        }
+    }
+    _handleProjectRevisionChangeNotification(scenarios) {
+        var self = this;
+
+        var dirtyScenarios = [];
+        $.each(scenarios, (i, scenario) => {
+            if (i > 0) { // skip project scenario
+                if (scenario.getScalar(self.config.projectRevisionEntity) > 0 && scenarios[0].getScalar(self.config.projectRevisionEntity) !== scenario.getScalar(self.config.projectRevisionEntity))
+                    dirtyScenarios.push(scenario.getName());
+            }
+        });
+        var message;
+        if (dirtyScenarios.length > 0)
+            message = "The project configuration has changed since the following scenarios were executed: " + dirtyScenarios.join(", ");
+
+        self.projectRevisionMessage(message);
+    }
+    _init() {
+        var self = this;
+
+        self.view = insight.getView();
+        self.app = self.view.getApp();
+        self.appId = self.app.getId();
+        self.schema = self.app.getModelSchema();
+
+        self.importOverlayDelay = 2000;
+
+        // auto detect the insight version number
+        if (typeof insight.getVersion == 'undefined' || insight.getVersion() === 4 || insight.getVersion().major === 4)
+            self.api = new InsightRESTAPIv1();
+        else
+            self.api = new InsightRESTAPI();
+
+        // fetch the list of project folders for a management view
+        if (self.config.viewType === "manage")
+            self._getProjects();
+
+        /* global VDL */
+        VDL('project-overlay', {
+            tag: 'project-overlay',
+            attributes: [],
+            template: '<div data-bind="visible: projectframework.showLoadingOverlay" class="project-loading-overlay"><img class="project-loading-img" src="../../../../distrib/insight-4.8/images/ajax_loader_109.gif" width="109" height="109"/><span style="display: block;" class="msg" data-bind="text: loadingOverlayMessage"></span><span>Please do not navigate away from the page</span></div>',
+            createViewModel(params) {
+                return new OverlayExtension(self);
+            }
+        });
+
+        self._initShelfValidation();
+    }
+
+    dom = {
         confirmDialog: null,
         uploadTimeout: 300000,
 
-        trigger: function(event) {
+        trigger(event) {
             $(document).trigger(event, _.without(arguments, arguments[0]));
         },
-        onEscape: function() {
+        onEscape() {
             $('[data-bb-handler="cancel"]').click();
         },
-        showConfirmationDialog: function(parent, action, title, message1, message2, callback, currentValue) {
+        showConfirmationDialog(parent, action, title, message1, message2, callback, currentValue) {
             var self = this;
 
             // message2 gets wrapped in an info box
@@ -913,17 +1152,17 @@ ProjectFramework.prototype = {
                     var $renderedInput = modal.find('input');
                     var affirmativeButton = modal.find('.affirmative');
 
-                    $renderedInput.on('change keyup', function(event) {
+                    $renderedInput.on('change keyup', event => {
                         if (!self.validateModalInputState(event))
                             affirmativeButton.prop('disabled', true);
                         else
                             affirmativeButton.prop('disabled', false);
                     });
 
-                    self.confirmDialog.on("shown.bs.modal", function(event) {
+                    self.confirmDialog.on("shown.bs.modal", event => {
                         var $renderedInput = modal.find('input');
                         var renderedInput = $renderedInput[0];
-                        _.defer(function() {
+                        _.defer(() => {
                             renderedInput.focus();
                             renderedInput.setSelectionRange(0, renderedInput.value.length);
                         });
@@ -931,7 +1170,7 @@ ProjectFramework.prototype = {
 
                     //Prevent enter from submitting form, but press ok instead
                     var formEle = modal.find('#modal-form');
-                    formEle.on('submit', function(event) {
+                    formEle.on('submit', event => {
                         event.preventDefault();
                         $('[data-bb-handler="ok"]').click()
                     });
@@ -945,10 +1184,10 @@ ProjectFramework.prototype = {
 
             self.confirmDialog.modal('show');
         },
-        validateModalInputState: function(event) {
+        validateModalInputState(event) {
             return _.trim($(event.target).val()) !== '';
         },
-        downloadFile: function(url) {
+        downloadFile(url) {
             var body = $('body');
             var downloadIframe = body.find('#download-iframe');
 
@@ -958,7 +1197,7 @@ ProjectFramework.prototype = {
 
             downloadIframe.attr('src', url);
         },
-        promptFileUpload: function(parent) {
+        promptFileUpload(parent) {
             var self = this;
 
             var uploadHolder = parent.find('#hidden-file-upload-holder');
@@ -972,16 +1211,16 @@ ProjectFramework.prototype = {
                 resolve: null,
                 reject: null
             };
-            var promise = new Promise(function(resolve, reject) {
+            var promise = new Promise((resolve, reject) => {
                 promiseFunctions.resolve = resolve;
                 promiseFunctions.reject = reject;
             });
 
-            uploadHolder.find('.hiddenFileUpload').on('change', function() {
+            uploadHolder.find('.hiddenFileUpload').on('change', ()  => {
                 promiseFunctions.resolve(this.files);
             });
 
-            setTimeout(function() {
+            setTimeout(() => {
                 promiseFunctions.reject('Upload Timed Out');
             }, self.uploadTimeout);
 
@@ -990,291 +1229,22 @@ ProjectFramework.prototype = {
 
             return promise;
         },
-    },
-    _validateForProjectPage: function _validateForProjectPage(scenarios) {
-        var self = this;
-        var projectPath = '';
-        var foundProject = false;
-        var foundProjectDetails = null;
-        var tooManyProjects = false;
-        var errorType = null;
-
-        var invalidScenarios = [];
-        var invalidProjects = [];
-
-        var validationmsg;
-
-        for (var i = 0; i < scenarios.length; i++) {
-            if (scenarios[i].getScenarioType() === self.config.projectScenarioType) {
-                if (!foundProject) {
-                    foundProject = true;
-                    foundProjectDetails = scenarios[i];
-                } else {
-                    invalidProjects.push(scenarios[i].getName());
-                    errorType = 'tooManyProjects';
-                }
-            }
-
-            if (errorType !== 'tooManyProjects') {
-                if (i === 0) {
-                    if (scenarios[i].getScenarioType() === self.config.projectScenarioType) {
-                        var escapedProjectName = scenarios[i].getName().replace(/\\/g, '\\\\').replace(/\//g, '\\/');
-                        var projectNamePlusSlashLength = escapedProjectName.length + 1;
-                        projectPath = scenarios[i].getPath().substring(0, scenarios[i].getPath().length - projectNamePlusSlashLength);
-                    } else {
-                        errorType = 'projectInWrongPos';
-                    }
-                } else {
-                    var pathIndex = scenarios[i].getPath().indexOf(projectPath);
-                    var endOfPath = pathIndex + projectPath.length;
-
-                    if (pathIndex < 0 || scenarios[i].getPath().charAt(endOfPath) !== '/') {
-                        invalidScenarios.push(scenarios[i].getName());
-                        errorType = 'incompatibleScenarios';
-                    }
-                }
-            }
-
-        }
-
-        if (!foundProject) {
-            errorType = 'noProjectScenario';
-        }
-
-        switch (errorType) {
-            case 'noProjectScenario':
-                validationmsg = 'There is no active project. Please return to the Manage Projects page and create or open a project.';
-                break;
-            case 'tooManyProjects':
-                invalidProjects.unshift(foundProjectDetails.getName());
-                validationmsg = 'You have added the following project' + ((invalidProjects.length > 1) ? 's' : '') + ' to the shelf: "' + invalidProjects.join('", "') + '". Please ensure that you only have one project scenario and that it is in the first position.';
-                break;
-            case 'incompatibleScenarios':
-                validationmsg = 'There are scenarios from different projects other than "' + foundProjectDetails.getName() + '" on the shelf. Please remove the following scenario' + ((invalidScenarios.length > 1) ? 's: ' : ': "') + invalidScenarios.join('", "') + '".';
-                break;
-            case 'projectInWrongPos':
-                validationmsg = 'Project "' + foundProjectDetails.getName() + '" is not in the correct shelf position. Please place it into the first position on the shelf.';
-                break;
-            default:
-                validationmsg = "";
-        }
-
-        return validationmsg;
-    },
-    _validateForScenarioPage: function _validateForScenarioPage(scenarios, neededScenarioTypes) {
-        var self = this;
-
-        // a scenario page requirements is a superset of a project page requirements
-        var projectvalidation = self._validateForProjectPage(scenarios);
-        if (projectvalidation)
-            return projectvalidation;
-
-        // if match not specificed then all
-        if (!neededScenarioTypes) {
-            neededScenarioTypes = '*';
-        }
-
-        // must be at least one scenario as well as the project scenario
-        if (scenarios.length === 1)
-            return 'This view requires at least one scenario to be selected. Create a new scenario or select an existing scenario by clicking on the grey scenario shelf above.';
-
-        // the extra scenarios must be of the required type
-        var count = 0;
-        for (var i = 1; i < scenarios.length; i++) {
-            if (neededScenarioTypes === '*') {
-                count++;
-            } else {
-                var index = neededScenarioTypes.indexOf(scenarios[i].getScenarioType());
-
-                if (index > -1) {
-                    count++;
-                }
-            }
-        }
-        // found no scenarios that meet type requirements
-        if (count === 0)
-            return 'To view this information please create a new scenario or select an existing scenario of the required type by clicking on the grey scenario shelf above.';
-
-        // no validation errors
-        return "";
-    },
-    _initShelfValidation: function() {
-        var self = this;
-        // if the shelf is empty its not valid
-        if (self.view.getScenarioIds().length === 0) {
-            self.shelfValidationMessage({
-                text: 'There is no active project. Please create or open a project.',
-                showNav: true,
-            });
-            self.shelfValid(false);
-        } else {
-            // shelf validation
-            self.view
-                .withAllScenarios()
-                .withSummaryData()
-                .once(function(scenarios) {
-                    var msg;
-                    if (self.config.viewType.toLowerCase() === "project")
-                        msg = self.validateShelf('project', scenarios);
-                    else if (self.config.viewType.toLowerCase() === "scenario")
-                        msg = self.validateShelf('scenario', scenarios);
-
-                    // else no validation required
-                    if (msg) {
-                        self.shelfValidationMessage({
-                            text: msg
-                        });
-                        self.shelfValid(false);
-                    } else {
-                        self.shelfValidationMessage();
-                        self.shelfValid(true);
-
-                        self._initProjectRevisionTracking();
-                    }
-                })
-                .start();
-        }
-    },
-    _initProjectRevisionTracking: function() {
-        var self = this;
-
-        // observe the project entities that the project revision is impacted by
-        var entities;
-        if (self.config.projectEntities === "all")
-            entities = self.app.getModelSchema().getAllEntities();
-        else
-            entities = self.config.projectEntities;
-
-        // if there are entities that the project revision is impacted by
-        if (entities.length > 0) {
-            // make sure we get the project revision too
-            entities = entities.concat([self.config.projectRevisionEntity]);
-            self.view
-                .withFirstScenario()
-                .withEntities(entities)
-                .notify(self._handleProjectEntityChangeNotification.bind(self))
-                .start();
-        };
-
-        // do a revision check and collate a message if inconsistent
-        // project revision is an incrementing randomly seeded number
-        // newly loaded scenarios default to zero
-        // a scenario is dirty when its revision is not zero and not the same as the project
-        // but only if there is at least one scenairo on the shelf, to avoid a built in warning about requiring scenarios
-        if (self.view.getScenarioIds().length > 0)
-            self.view
-            .withAllScenarios()
-            .withEntities([self.config.projectRevisionEntity])
-            .notify(self._handleProjectRevisionChangeNotification.bind(self))
-            .start();
-    },
-    // call when a tracked project scenario entity is changed
-    // scenario argument should always be the project scenario
-    _handleProjectEntityChangeNotification: function(scenario) {
-        var self = this;
-
-        // if our project revision is zero this is a page load first fetch
-        // so capture the current revision value
-        if (self.projectRevision === 0)
-            self.projectRevision = scenario.getScalar(self.config.projectRevisionEntity);
-        // if our project revision is different to the incoming value
-        else if (self.projectRevision !== scenario.getScalar(self.config.projectRevisionEntity))
-            // another user or mosel caused it to change so store it
-            self.projectRevision = scenario.getScalar(self.config.projectRevisionEntity);
-        else if (scenario.isEditable()) {
-            // dont increment revision on a notify caused by execution status change. use editable flag to determine its a data change event
-            
-            // our current user caused the data to change, so increment the project revision
-            var dataChange = scenario.modify();
-            self.projectRevision++;
-            dataChange.setScalar(self.config.projectRevisionEntity, self.projectRevision);
-            dataChange.commit();
-        }
-    },
-    _handleProjectRevisionChangeNotification: function(scenarios) {
-        var self = this;
-
-        var dirtyScenarios = [];
-        $.each(scenarios, function(i, scenario) {
-            if (i > 0) { // skip project scenario
-                if (scenario.getScalar(self.config.projectRevisionEntity) > 0 && scenarios[0].getScalar(self.config.projectRevisionEntity) !== scenario.getScalar(self.config.projectRevisionEntity))
-                    dirtyScenarios.push(scenario.getName());
-            }
-        });
-        var message;
-        if (dirtyScenarios.length > 0)
-            message = "The project configuration has changed since the following scenarios were executed: " + dirtyScenarios.join(", ");
-
-        self.projectRevisionMessage(message);
-    },
-    _init: function() {
-        var self = this;
-
-        self.view = insight.getView();
-        self.app = self.view.getApp();
-        self.appId = self.app.getId();
-        self.schema = self.app.getModelSchema();
-
-        self.importOverlayDelay = 2000;
-
-        // auto detect the insight version number
-        if (typeof insight.getVersion == 'undefined' || insight.getVersion() === 4 || insight.getVersion().major === 4)
-            self.api = new InsightRESTAPIv1();
-        else
-            self.api = new InsightRESTAPI();
-
-        // fetch the list of project folders for a management view
-        if (self.config.viewType === "manage")
-            self._getProjects();
-
-        /* global VDL */
-        VDL('project-overlay', {
-            tag: 'project-overlay',
-            attributes: [],
-            template: '<div data-bind="visible: projectframework.showLoadingOverlay" class="project-loading-overlay"><img class="project-loading-img" src="../../../../distrib/insight-4.8/images/ajax_loader_109.gif" width="109" height="109"/><span style="display: block;" class="msg" data-bind="text: loadingOverlayMessage"></span><span>Please do not navigate away from the page</span></div>',
-            createViewModel: function(params) {
-                return new OverlayExtension(self);
-            }
-        });
-
-        self._initShelfValidation();
     }
 };
 
-// Initialise the system
-function ProjectFramework(userconfig) {
-    var self = this;
-
-    $.extend(self, {
-        // configuration defaults
-        config: {
-            projectScenarioType: "PROJECT", // custom scenario type id for project scenario type
-            defaultView: '', // the view that Open Project navigates to
-            manageView: 'Manage', // id of the project management view
-            viewType: "", // type of the current view. project | scenario. Any other value means neither
-            projectEntities: [], // list of project entities that impact the project revision for the current view. "all" or [entity names]
-            projectRevisionEntity: "ProjectRevision", // the entity storing the project revision,
-            projectAttributes: [] // list of entities that are fetched to augment project object for management view
-        }
-    });
-    $.extend(self.config, userconfig);
-
-    return self;
-}
 
 /*
 Custom overlay for during custom orchestrated actions like import project
 */
-/* global projectframework */
-function OverlayExtension(parent) {
-    var self = this;
-    self.framework = parent;
-    self.registerEventListeners();
-}
-OverlayExtension.prototype = {
-    framework: null,
-    loadingOverlayMessage: ko.observable(''),
-    registerEventListeners: function() {
+class OverlayExtension {
+    framework = null;
+
+    constructor(parent) {
+        this.framework = parent;
+        this.registerEventListeners();
+    }
+    loadingOverlayMessage = ko.observable('');
+    registerEventListeners() {
         var self = this;
         $(window)
             .on('project.overlay.show', this.show.bind(this))
@@ -1282,9 +1252,9 @@ OverlayExtension.prototype = {
             .on('project.overlay.setMessage', this.setMessage.bind(this));
 
         self.framework.showLoadingOverlay.subscribe(this.setMessageOffset);
-    },
-    setMessageOffset: function(overlayShown) {},
-    show: function(evnt, initialMessage) {
+    }
+    setMessageOffset(overlayShown) {}
+    show(evnt, initialMessage) {
         var self = this;
         self.framework.view.configure({
             executionOverlay: false
@@ -1295,8 +1265,8 @@ OverlayExtension.prototype = {
             self.setMessage(initialMessage);
         }
         self.framework.showLoadingOverlay(true);
-    },
-    hide: function() {
+    }
+    hide() {
         var self = this;
         self.framework.view.configure({
             executionOverlay: true
@@ -1304,8 +1274,8 @@ OverlayExtension.prototype = {
 
         self.framework.showLoadingOverlay(false);
         self.setMessage('');
-    },
-    setMessage: function() {
+    }
+    setMessage() {
         var self = this;
         var message = arguments.length === 2 ? arguments[1] : arguments[0];
         self.loadingOverlayMessage(message);
@@ -1313,20 +1283,18 @@ OverlayExtension.prototype = {
 };
 
 // REST API interface for v1 of the REST API (Insight 4)
-function InsightRESTAPIv1() {
-    var self = this;
-    self.version = 1;
-    return this;
-}
-InsightRESTAPIv1.prototype = {
-    BASE_REST_ENDPOINT: '/data/',
-    contentNegotiation: 'application/json',
+class InsightRESTAPIv1 {
+    BASE_REST_ENDPOINT =  '/data/';
+    contentNegotiation = 'application/json';
 
-    getVersion: function() {
+    constructor() {
+        this.version = 1;
+    }
+    getVersion() {
         var self = this;
         return self.version;
-    },
-    restRequest: function(path, type, data) {
+    }
+    restRequest(path, type, data) {
         var self = this;
         var request = {
             url: insight.resolveRestEndpoint(self.BASE_REST_ENDPOINT + path),
@@ -1338,22 +1306,22 @@ InsightRESTAPIv1.prototype = {
             }
         };
 
-        return new Promise(function(resolve, reject) {
+        return new Promise((resolve, reject) => {
             var jqXHR = $.ajax(request);
 
-            jqXHR.done(function(data, textStatus, jqXHR) {
+            jqXHR.done((data, textStatus, jqXHR) => {
                 resolve(data);
             });
 
-            jqXHR.fail(function(data, textStatus, jqXHR) {
+            jqXHR.fail((data, textStatus, jqXHR) => {
                 reject(textStatus);
             });
         });
-    },
-    getProjects: function(appId) {
+    }
+    getProjects(appId) {
         var self = this;
         return self.restRequest('project/' + appId + '/children?maxResults=9999', 'GET')
-            .then(function(data) {
+            .then(data => {
                 var projects = [];
                 var children = data.items;
 
@@ -1374,17 +1342,17 @@ InsightRESTAPIv1.prototype = {
 
 
                 // sort case insensitive
-                projects.sort(function(a, b) {
+                projects.sort((a, b) => {
                     return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
                 });
 
                 return projects;
             });
-    },
-    getChildren: function(folderId) {
+    }
+    getChildren(folderId) {
         var self = this;
         return self.restRequest('folder/' + folderId + '/children?maxResults=9999', 'GET')
-            .then(function(data) {
+            .then(data => {
                 var children = data.items;
 
                 // standarize naming property
@@ -1394,19 +1362,19 @@ InsightRESTAPIv1.prototype = {
                 }
                 return children;
             });
-    },
-    createScenario: function(app, parent, name, type) {
+    }
+    createScenario(app, parent, name, type) {
         var self = this;
 
         return app.createScenario(parent, name, type)
-            .then(function(scenario) {
+            .then(scenario => {
                 // standarize name property
                 scenario.name = scenario.displayName;
                 delete scenario.displayName;
                 return scenario;
             });
-    },
-    cloneScenario: function(scenarioId, parent, newName) {
+    }
+    cloneScenario(scenarioId, parent, newName) {
         var self = this;
 
         var payload = {
@@ -1421,24 +1389,24 @@ InsightRESTAPIv1.prototype = {
         };
 
         return self.restRequest('scenario', 'POST', JSON.stringify(payload));
-    },
-    createRootFolder: function(app, name) {
+    }
+    createRootFolder(app, name) {
         var self = this;
 
         // no parent specified == root folder
         return app.createFolder(name)
-            .then(function(folder) {
+            .then(folder => {
                 // standarize name property
                 folder.name = folder.displayName;
                 delete folder.displayName;
                 return folder;
             });
-    },
-    deleteFolder: function(id) {
+    }
+    deleteFolder(id) {
         var self = this;
         return self.restRequest('folder/' + id, 'DELETE');
-    },
-    renameScenario: function(scenarioId, newName) {
+    }
+    renameScenario(scenarioId, newName) {
         var self = this;
 
         var payload = {
@@ -1446,8 +1414,8 @@ InsightRESTAPIv1.prototype = {
             displayName: newName
         };
         return self.restRequest('scenario/' + scenarioId, 'POST', JSON.stringify(payload));
-    },
-    renameFolder: function(folderId, newName) {
+    }
+    renameFolder(folderId, newName) {
         var self = this;
 
         var payload = {
@@ -1455,8 +1423,8 @@ InsightRESTAPIv1.prototype = {
             displayName: newName
         };
         return self.restRequest('folder/' + folderId, 'POST', JSON.stringify(payload));
-    },
-    shareScenario: function(id, shareStatus) {
+    }
+    shareScenario(id, shareStatus) {
         var self = this;
 
         if (shareStatus !== "PRIVATE" && shareStatus !== "READONLY" && shareStatus !== "FULLACCESS")
@@ -1467,8 +1435,8 @@ InsightRESTAPIv1.prototype = {
             shareStatus: shareStatus
         };
         return self.restRequest('scenario/' + id, 'POST', JSON.stringify(payload));
-    },
-    shareFolder: function(id, shareStatus) {
+    }
+    shareFolder(id, shareStatus) {
         var self = this;
 
         if (shareStatus !== "PRIVATE" && shareStatus !== "READONLY" && shareStatus !== "FULLACCESS")
@@ -1479,8 +1447,8 @@ InsightRESTAPIv1.prototype = {
             shareStatus: shareStatus
         };
         return self.restRequest('folder/' + id, 'POST', JSON.stringify(payload));
-    },
-    moveFolderToRoot: function(appId, folder) {
+    }
+    moveFolderToRoot(appId, folder) {
         var self = this;
 
         // deep clone the folder natively
@@ -1490,18 +1458,18 @@ InsightRESTAPIv1.prototype = {
         delete payload.name;
 
         return self.restRequest('project/' + appId + '/children', 'POST', JSON.stringify(payload))
-            .then(function(newFolder) {
+            .then(newFolder => {
                 // standarize name property
                 newFolder.name = newFolder.displayName;
                 delete newFolder.displayName;
                 return newFolder;
             });
-    },
-    getFolderExportDownloadURL: function(folderId) {
+    }
+    getFolderExportDownloadURL(folderId) {
         var self = this;
         return insight.resolveRestEndpoint(self.BASE_REST_ENDPOINT + 'folder/' + folderId + '/export');
-    },
-    uploadImportFile: function(workingFolder, fileUploads) {
+    }
+    uploadImportFile(workingFolder, fileUploads) {
         var self = this;
 
         var file = fileUploads[0];
@@ -1529,24 +1497,23 @@ InsightRESTAPIv1.prototype = {
             type: 'POST'
         };
 
-        return new Promise(function(resolve, reject) {
+        return new Promise((resolve, reject) => {
             var jqXHR = $.ajax(request);
 
-            jqXHR.done(function(data, textStatus, jqXHR) {
+            jqXHR.done((data, textStatus, jqXHR) => {
                 resolve({
                     folders: data.folders.items,
                     scenarios: data.scenarios.items
                 });
             });
 
-            jqXHR.fail(function(data, textStatus, jqXHR) {
+            jqXHR.fail((data, textStatus, jqXHR) => {
                 reject(data);
             });
         });
-    },
-    // dummy for testing
-    exportFolder: function() {},
-    getScenarioEntities: function(scenarioId, entities) {
+    }
+    exportFolder() {}
+    getScenarioEntities(scenarioId, entities) {
         var self = this;
         
         var params = [];
@@ -1559,21 +1526,19 @@ InsightRESTAPIv1.prototype = {
 }
 
 // REST API interface for v2 of the REST API (Insight 5)
-function InsightRESTAPI() {
-    var self = this;
-    self.version = 2;
-    return this;
-}
-InsightRESTAPI.prototype = {
-    BASE_REST_ENDPOINT: '/api/',
-    contentNegotiation: 'application/vnd.com.fico.xpress.insight.v2+json',
-    uploadPollingInterval: 1000,
+class InsightRESTAPI {
+    BASE_REST_ENDPOINT = '/api/';
+    contentNegotiation = 'application/vnd.com.fico.xpress.insight.v2+json';
+    uploadPollingInterval = 1000;
 
-    getVersion: function() {
+    constructor() {
+        this.version = 2;
+    }
+    getVersion() {
         var self = this;
         return self.version;
-    },
-    restRequest: function(path, type, data) {
+    }
+    restRequest(path, type, data) {
         var self = this;
         var request = {
             url: insight.resolveRestEndpoint(self.BASE_REST_ENDPOINT + path),
@@ -1585,17 +1550,17 @@ InsightRESTAPI.prototype = {
             }
         };
 
-        return new Promise(function(resolve, reject) {
+        return new Promise((resolve, reject) => {
             var jqXHR = $.ajax(request);
 
-            jqXHR.done(function(response) {
+            jqXHR.done(response => {
                 if (response)
                     resolve(response);
                 else
                     resolve();
             });
 
-            jqXHR.fail(function(jqXHR) {
+            jqXHR.fail(jqXHR => {
                 var code;
                 var message;
 
@@ -1619,11 +1584,11 @@ InsightRESTAPI.prototype = {
                 reject(message);
             });
         });
-    },
-    getProjects: function(appId) {
+    }
+    getProjects(appId) {
         var self = this;
         return self.restRequest('apps/' + appId + '/children?page=0&size=9999', 'GET')
-            .then(function(children) {
+            .then(children => {
                 var projects = [];
                 children = children.content; // strip away the container
 
@@ -1637,32 +1602,32 @@ InsightRESTAPI.prototype = {
                 };
 
                 // sort case insensitive
-                projects.sort(function(a, b) {
+                projects.sort((a, b) => {
                     return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
                 });
 
                 return projects;
             });
-    },
-    getChildren: function(folderId) {
+    }
+    getChildren(folderId) {
         var self = this;
         return self.restRequest('folders/' + folderId + '/children?page=0&size=9999', 'GET')
-            .then(function(children) {
+            .then(children => {
                 return children.content; // strip away the container
             });
-    },
-    createScenario: function(app, parent, name, type) {
+    }
+    createScenario(app, parent, name, type) {
         var self = this;
 
         return app.createScenario(parent, name, type)
-            .then(function(scenario) {
+            .then(scenario => {
                 // standarize name property
                 scenario.name = scenario.displayName;
                 delete scenario.displayName;
                 return scenario;
             });
-    },
-    cloneScenario: function(scenarioId, parent, newName) {
+    }
+    cloneScenario(scenarioId, parent, newName) {
         var self = this;
 
         var payload = {
@@ -1679,23 +1644,23 @@ InsightRESTAPI.prototype = {
             }
         };
         return self.restRequest('scenarios', 'POST', JSON.stringify(payload));
-    },
-    createRootFolder: function(app, name) {
+    }
+    createRootFolder(app, name) {
         var self = this;
 
         return app.createFolder(name)
-            .then(function(folder) {
+            .then(folder => {
                 // standarize name property
                 folder.name = folder.displayName;
                 delete folder.displayName;
                 return folder;
             });
-    },
-    deleteFolder: function(id) {
+    }
+    deleteFolder(id) {
         var self = this;
         return self.restRequest('folders/' + id, 'DELETE');
-    },
-    renameScenario: function(scenarioId, newName) {
+    }
+    renameScenario(scenarioId, newName) {
         var self = this;
 
         var payload = {
@@ -1703,8 +1668,8 @@ InsightRESTAPI.prototype = {
             name: newName
         };
         return self.restRequest('scenarios/' + scenarioId, 'PATCH', JSON.stringify(payload));
-    },
-    renameFolder: function(folderId, newName) {
+    }
+    renameFolder(folderId, newName) {
         var self = this;
 
         var payload = {
@@ -1712,8 +1677,8 @@ InsightRESTAPI.prototype = {
             name: newName
         };
         return self.restRequest('folders/' + folderId, 'PATCH', JSON.stringify(payload));
-    },
-    shareScenario: function(id, shareStatus) {
+    }
+    shareScenario(id, shareStatus) {
         var self = this;
 
         if (shareStatus !== "PRIVATE" && shareStatus !== "READONLY" && shareStatus !== "FULLACCESS")
@@ -1724,8 +1689,8 @@ InsightRESTAPI.prototype = {
             shareStatus: shareStatus
         };
         return self.restRequest('scenarios/' + id, 'PATCH', JSON.stringify(payload));
-    },
-    shareFolder: function(id, shareStatus) {
+    }
+    shareFolder(id, shareStatus) {
         var self = this;
 
         if (shareStatus !== "PRIVATE" && shareStatus !== "READONLY" && shareStatus !== "FULLACCESS")
@@ -1736,12 +1701,12 @@ InsightRESTAPI.prototype = {
             shareStatus: shareStatus
         };
         return self.restRequest('folders/' + id, 'PATCH', JSON.stringify(payload));
-    },
-    moveFolderToRoot: function(appId, folder) {
+    }
+    moveFolderToRoot(appId, folder) {
         var self = this;
         return self.restRequest('apps/' + appId + '/children', 'POST', JSON.stringify(folder));
-    },
-    uploadImportFile: function(workingFolder, fileUploads) {
+    }
+    uploadImportFile(workingFolder, fileUploads) {
         var self = this;
 
         var file = fileUploads[0];
@@ -1775,31 +1740,31 @@ InsightRESTAPI.prototype = {
             type: 'POST'
         };
 
-        return new Promise(function(resolve, reject) {
+        return new Promise((resolve, reject) => {
                 var jqXHR = $.ajax(request);
 
-                jqXHR.done(function(data, textStatus, jqXHR) {
+                jqXHR.done((data, textStatus, jqXHR) => {
                     resolve(data);
                 });
 
-                jqXHR.fail(function(data, textStatus, jqXHR) {
+                jqXHR.fail((data, textStatus, jqXHR) => {
                     reject(data);
                 });
             })
-            .then(function(data) {
+            .then(data => {
                 // portations are asyncronous so now need to poll for completion
                 return self.waitForUpload(data.id);
             })
-    },
-    waitForUpload: function(portationId) {
+    }
+    waitForUpload(portationId) {
         var self = this;
         // start polling and return a promise which resolves when the polling completes
-        return new Promise(function(resolve, reject) {
+        return new Promise((resolve, reject) => {
             // repeated polling
             self.polling = window.setInterval(
-                function() {
+                () => {
                     self.restRequest("portations/imports/" + portationId, "GET")
-                        .then(function(response) {
+                        .then(response => {
                             // if finished then stop the polling
                             if (response.status === "SUCCESS") {
                                 window.clearInterval(self.polling);
@@ -1813,7 +1778,7 @@ InsightRESTAPI.prototype = {
                                     folders.push(folder);
 
                                     self.getChildren(folder.id)
-                                        .then(function(children) {
+                                        .then(children => {
                                             for (var i = 0; i < children.length; i++) {
                                                 if (children[i].objectType === "SCENARIO")
                                                     scenarios.push(children[i]);
@@ -1833,7 +1798,7 @@ InsightRESTAPI.prototype = {
                                 throw (response.errorMessages.items[0]);
                             // any other status and we are still going to keep polling
                         })
-                        .catch(function(error) {
+                        .catch(error => {
                             window.clearInterval(self.polling);
                             reject(error);
                         });
@@ -1841,16 +1806,16 @@ InsightRESTAPI.prototype = {
                 self.uploadPollingInterval
             );
         });
-    },
-    exportFolder: function(projectFolder) {
+    }
+    exportFolder(projectFolder) {
         var self = this;
         // request the export
         var payload = {
             source: projectFolder
         };
         return self.restRequest('portations/exports', 'POST', JSON.stringify(payload));
-    },
-    getScenarioEntities: function(scenarioId, entities) {
+    }
+    getScenarioEntities(scenarioId, entities) {
         var self = this;
         var payload = {
             entityNames: entities
@@ -1864,6 +1829,4 @@ InsightRESTAPI.prototype = {
                 return data;
             });
     }
-    
-    
 }
