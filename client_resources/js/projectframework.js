@@ -3,7 +3,7 @@
 
     Framework for implementing Insight projects
 
-    (c) Copyright 2022 Fair Isaac Corporation
+    (c) Copyright 2023 Fair Isaac Corporation
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
@@ -45,8 +45,7 @@ ProjectFramework.prototype = {
     // Create a new project and open it
     createProject: function(newProjectName) {
         var self = this;
-        
-        console.log(newProjectName);
+
         // if a name has been supplied
         if (newProjectName) {
             newProjectName = newProjectName.trim();
@@ -191,13 +190,13 @@ ProjectFramework.prototype = {
                 var projectTargetShare = projectScenario.shareStatus;
                 var currentShare = "";
 
-                if (folderTargetShare == "PRIVATE" && projectTargetShare == "PRIVATE")
+                if (folderTargetShare === "PRIVATE" && projectTargetShare === "PRIVATE")
                     currentShare = "SHARE_PRIVATE";
-                else if (folderTargetShare == "READONLY" && projectTargetShare == "READONLY")
+                else if (folderTargetShare === "READONLY" && projectTargetShare === "READONLY")
                     currentShare = "SHARE_READONLY";
-                else if (folderTargetShare == "FULLACCESS" && projectTargetShare == "READONLY")
+                else if (folderTargetShare === "FULLACCESS" && projectTargetShare === "READONLY")
                     currentShare = "SHARE_PROJECTREADONLY";
-                else if (folderTargetShare == "FULLACCESS" && projectTargetShare == "FULLACCESS")
+                else if (folderTargetShare === "FULLACCESS" && projectTargetShare === "FULLACCESS")
                     currentShare = "SHARE_FULL";
                 else
                     currentShare = "SHARE_UNRECOGNISED";
@@ -225,14 +224,11 @@ ProjectFramework.prototype = {
 
     _getProjects: function() {
         var self = this;
-        
-        console.log(self.api.getVersion());
 
-        debugger;
         return self.api.getProjects(self.appId)
             .then(function(projects) {
                 // v4 needs username to user name resolution
-                if (self.api.getVersion() == 1)
+                if (self.api.getVersion() === 1)
                     return self.app.getUsers()
                         .then(function(response) {
                             var users = {};
@@ -277,7 +273,6 @@ ProjectFramework.prototype = {
             })
             // then compute the list of projects owned by the current user
             .then(projects => {
-                debugger;
                 return self.view.getUser()
                 .then(currentUser => {
                     var owned = [];
@@ -316,7 +311,7 @@ ProjectFramework.prototype = {
             .then(function(children) {
                 var found;
                 for (var i = 0; i < children.length; i++)
-                    if (children[i].scenarioType == self.config.projectScenarioType)
+                    if (children[i].scenarioType === self.config.projectScenarioType)
                         found = children[i];
                 if (found)
                     return found;
@@ -328,7 +323,7 @@ ProjectFramework.prototype = {
             });
     },
     _validateProjectName: function(newProjectName) {
-        return !(!newProjectName || newProjectName.indexOf("_") == 0);
+        return !(!newProjectName || newProjectName.indexOf("_") === 0);
     },
     _getProjectFolderObject: function(projectFolderId) {
         var self = this;
@@ -353,8 +348,8 @@ ProjectFramework.prototype = {
         // check if the chosen name is already in use
         var namingConflict = false;
         $.each(self.currentProjectFolders(), function(i, v) {
-            if (v.name == newName) {
-                self.view.showErrorMessage("Cannot rename. A project exists with the same name");
+            if (v.name === newName) {
+                self.view.showErrorMessage("Cannot create. A project exists with the same name");
                 namingConflict = true;
             }
         });
@@ -377,7 +372,7 @@ ProjectFramework.prototype = {
         // check if the chosen name is already in use
         var namingConflict = false;
         $.each(self.currentProjectFolders(), function(i, v) {
-            if (v.name == newProjectName) {
+            if (v.name === newProjectName) {
                 self.view.showErrorMessage("Cannot create. A project exists with the same name");
                 namingConflict = true;
             }
@@ -427,7 +422,7 @@ ProjectFramework.prototype = {
         // check if the chosen name is already in use
         var namingConflict = false;
         $.each(self.currentProjectFolders(), function(i, v) {
-            if (v.name == newName) {
+            if (v.name === newName) {
                 self.view.showErrorMessage("Cannot clone. A project exists with the same name");
                 namingConflict = true;
             }
@@ -523,7 +518,7 @@ ProjectFramework.prototype = {
         // check if the chosen name is already in use
         var namingConflict = false;
         $.each(self.currentProjectFolders(), function(i, v) {
-            if (v.name == newName) {
+            if (v.name === newName) {
                 self.view.showErrorMessage("Cannot rename. A project exists with the same name");
                 namingConflict = true;
             }
@@ -580,13 +575,13 @@ ProjectFramework.prototype = {
         var folderTargetShare;
         var projectTargetShare;
 
-        if (newShare == "SHARE_READONLY") {
+        if (newShare === "SHARE_READONLY") {
             folderTargetShare = "READONLY";
             projectTargetShare = "READONLY";
-        } else if (newShare == "SHARE_PROJECTREADONLY") {
+        } else if (newShare === "SHARE_PROJECTREADONLY") {
             folderTargetShare = "FULLACCESS";
             projectTargetShare = "READONLY";
-        } else if (newShare == "SHARE_FULL") {
+        } else if (newShare === "SHARE_FULL") {
             folderTargetShare = "FULLACCESS";
             projectTargetShare = "FULLACCESS";
         }
@@ -626,7 +621,7 @@ ProjectFramework.prototype = {
     },
     _exportProject: function(projectFolder) {
         var self = this;
-        if (self.api.getVersion() == 1) {
+        if (self.api.getVersion() === 1) {
             // syncronous browser download for Insight 4 servers
             self.view.showInfoMessage('Exporting project \'' + projectFolder.name + '\'...');
             self.dom.downloadFile(self.api.getFolderExportDownloadURL(projectFolder.id));
@@ -648,7 +643,7 @@ ProjectFramework.prototype = {
         var workingFolder;
 
         // prompt the user for a file selection
-        if (origin == "UPLOAD")
+        if (origin === "UPLOAD")
             return self.dom.promptFileUpload($("body")) // returns array of files
                 .then(function(files) {
 
@@ -690,7 +685,7 @@ ProjectFramework.prototype = {
                     return self._handleUpgradeErrors(workingFolder ? workingFolder.id : undefined, error);
                 });
 
-        if (origin == "SERVER")
+        if (origin === "SERVER")
             return self.api.createRootFolder(self.app, workingFolderName)
                 .then(function(folder) {
                     workingFolder = folder;
@@ -766,23 +761,23 @@ ProjectFramework.prototype = {
         // number of scenarios created by the import
         var projectScenarios = [];
         for (var i = 0; i < projectImport.scenarios.length; i++)
-            if (projectImport.scenarios[i].scenarioType == self.config.projectScenarioType)
+            if (projectImport.scenarios[i].scenarioType === self.config.projectScenarioType)
                 projectScenarios.push(projectImport.scenarios[i]);
 
         // if there is more than 1 folder imported then filter out the sub-folders
         var projectRootFolders = [];
-        if (projectImport.folders.length == 1)
+        if (projectImport.folders.length === 1)
             projectRootFolders.push(projectImport.folders[0]);
         else if (projectImport.folders.length > 1)
             for (var i = 0; i < projectImport.folders.length; i++)
                 if (projectImport.folders[i].parent.id === workingFolder.id)
                     projectRootFolders.push(projectImport.folders[i]);
 
-        if (projectScenarios.length == 0)
+        if (projectScenarios.length === 0)
             return Promise.reject("Error during project import. The imported file does not contain a project scenario");
         if (projectScenarios.length > 1)
             return Promise.reject("Error during project import. The imported file contains more than 1 project scenario");
-        if (projectRootFolders.length == 0)
+        if (projectRootFolders.length === 0)
             return Promise.reject("Error during project import. The imported file does not contain a project folder");
         if (projectRootFolders.length > 1)
             return Promise.reject("Error during project import. The imported file contains more than one project folder");
@@ -1097,7 +1092,7 @@ ProjectFramework.prototype = {
             }
         }
         // found no scenarios that meet type requirements
-        if (count == 0)
+        if (count === 0)
             return 'To view this information please create a new scenario or select an existing scenario of the required type by clicking on the grey scenario shelf above.';
 
         // no validation errors
@@ -1106,7 +1101,7 @@ ProjectFramework.prototype = {
     _initShelfValidation: function() {
         var self = this;
         // if the shelf is empty its not valid
-        if (self.view.getScenarioIds().length == 0) {
+        if (self.view.getScenarioIds().length === 0) {
             self.shelfValidationMessage({
                 text: 'There is no active project. Please create or open a project.',
                 showNav: true,
@@ -1119,9 +1114,9 @@ ProjectFramework.prototype = {
                 .withSummaryData()
                 .once(function(scenarios) {
                     var msg;
-                    if (self.config.viewType.toLowerCase() == "project")
+                    if (self.config.viewType.toLowerCase() === "project")
                         msg = self.validateShelf('project', scenarios);
-                    else if (self.config.viewType.toLowerCase() == "scenario")
+                    else if (self.config.viewType.toLowerCase() === "scenario")
                         msg = self.validateShelf('scenario', scenarios);
 
                     // else no validation required
@@ -1145,7 +1140,7 @@ ProjectFramework.prototype = {
 
         // observe the project entities that the project revision is impacted by
         var entities;
-        if (self.config.projectEntities == "all")
+        if (self.config.projectEntities === "all")
             entities = self.app.getModelSchema().getAllEntities();
         else
             entities = self.config.projectEntities;
@@ -1180,10 +1175,10 @@ ProjectFramework.prototype = {
 
         // if our project revision is zero this is a page load first fetch
         // so capture the current revision value
-        if (self.projectRevision == 0)
+        if (self.projectRevision === 0)
             self.projectRevision = scenario.getScalar(self.config.projectRevisionEntity);
         // if our project revision is different to the incoming value
-        else if (self.projectRevision != scenario.getScalar(self.config.projectRevisionEntity))
+        else if (self.projectRevision !== scenario.getScalar(self.config.projectRevisionEntity))
             // another user or mosel caused it to change so store it
             self.projectRevision = scenario.getScalar(self.config.projectRevisionEntity);
         else if (scenario.isEditable()) {
@@ -1202,7 +1197,7 @@ ProjectFramework.prototype = {
         var dirtyScenarios = [];
         $.each(scenarios, function(i, scenario) {
             if (i > 0) { // skip project scenario
-                if (scenario.getScalar(self.config.projectRevisionEntity) > 0 && scenarios[0].getScalar(self.config.projectRevisionEntity) != scenario.getScalar(self.config.projectRevisionEntity))
+                if (scenario.getScalar(self.config.projectRevisionEntity) > 0 && scenarios[0].getScalar(self.config.projectRevisionEntity) !== scenario.getScalar(self.config.projectRevisionEntity))
                     dirtyScenarios.push(scenario.getName());
             }
         });
@@ -1229,7 +1224,7 @@ ProjectFramework.prototype = {
             self.api = new InsightRESTAPI();
 
         // fetch the list of project folders for a management view
-        if (self.config.viewType == "manage")
+        if (self.config.viewType === "manage")
             self._getProjects();
 
         /* global VDL */
@@ -1366,7 +1361,7 @@ InsightRESTAPIv1.prototype = {
                 for (var i = 0; i < children.length; i++) {
                     var child = children[i];
                     // mask out those starting with underscore
-                    if (child.objectType === 'FOLDER' && !(child.displayName.indexOf("_") == 0)) {
+                    if (child.objectType === 'FOLDER' && !(child.displayName.indexOf("_") === 0)) {
                         projects.push(child);
                     }
                 };
@@ -1464,7 +1459,7 @@ InsightRESTAPIv1.prototype = {
     shareScenario: function(id, shareStatus) {
         var self = this;
 
-        if (shareStatus != "PRIVATE" && shareStatus != "READONLY" && shareStatus != "FULLACCESS")
+        if (shareStatus !== "PRIVATE" && shareStatus !== "READONLY" && shareStatus !== "FULLACCESS")
             return Promise.reject("Invalid share status");
 
         var payload = {
@@ -1476,7 +1471,7 @@ InsightRESTAPIv1.prototype = {
     shareFolder: function(id, shareStatus) {
         var self = this;
 
-        if (shareStatus != "PRIVATE" && shareStatus != "READONLY" && shareStatus != "FULLACCESS")
+        if (shareStatus !== "PRIVATE" && shareStatus !== "READONLY" && shareStatus !== "FULLACCESS")
             return Promise.reject("Invalid share status");
 
         var payload = {
@@ -1636,7 +1631,7 @@ InsightRESTAPI.prototype = {
                 for (var i = 0; i < children.length; i++) {
                     var child = children[i];
                     // mask out those starting with underscore
-                    if (child.objectType === 'FOLDER' && !(child.name.indexOf("_") == 0)) {
+                    if (child.objectType === 'FOLDER' && !(child.name.indexOf("_") === 0)) {
                         projects.push(child);
                     }
                 };
@@ -1721,7 +1716,7 @@ InsightRESTAPI.prototype = {
     shareScenario: function(id, shareStatus) {
         var self = this;
 
-        if (shareStatus != "PRIVATE" && shareStatus != "READONLY" && shareStatus != "FULLACCESS")
+        if (shareStatus !== "PRIVATE" && shareStatus !== "READONLY" && shareStatus !== "FULLACCESS")
             return Promise.reject("Invalid share status");
 
         var payload = {
@@ -1733,7 +1728,7 @@ InsightRESTAPI.prototype = {
     shareFolder: function(id, shareStatus) {
         var self = this;
 
-        if (shareStatus != "PRIVATE" && shareStatus != "READONLY" && shareStatus != "FULLACCESS")
+        if (shareStatus !== "PRIVATE" && shareStatus !== "READONLY" && shareStatus !== "FULLACCESS")
             return Promise.reject("Invalid share status");
 
         var payload = {
@@ -1806,21 +1801,21 @@ InsightRESTAPI.prototype = {
                     self.restRequest("portations/imports/" + portationId, "GET")
                         .then(function(response) {
                             // if finished then stop the polling
-                            if (response.status == "SUCCESS") {
+                            if (response.status === "SUCCESS") {
                                 window.clearInterval(self.polling);
 
                                 var folders = [];
                                 var scenarios = [];
 
                                 // did we import a folder
-                                if (response.reference.objectType == "FOLDER") {
+                                if (response.reference.objectType === "FOLDER") {
                                     var folder = response.reference;
                                     folders.push(folder);
 
                                     self.getChildren(folder.id)
                                         .then(function(children) {
                                             for (var i = 0; i < children.length; i++) {
-                                                if (children[i].objectType == "SCENARIO")
+                                                if (children[i].objectType === "SCENARIO")
                                                     scenarios.push(children[i]);
                                             }
                                             resolve({
@@ -1834,7 +1829,7 @@ InsightRESTAPI.prototype = {
                                         scenarios: []
                                     });
                                 }
-                            } else if (response.status == "ERROR")
+                            } else if (response.status === "ERROR")
                                 throw (response.errorMessages.items[0]);
                             // any other status and we are still going to keep polling
                         })
@@ -1860,7 +1855,7 @@ InsightRESTAPI.prototype = {
         var payload = {
             entityNames: entities
         };
-        
+
         return self.restRequest('scenarios/' + scenarioId + '/data', 'POST', JSON.stringify(payload))
             .then(response => {
                 var data = {};

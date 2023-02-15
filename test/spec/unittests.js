@@ -10,16 +10,32 @@ describe("Project framework", function () {
     var project;
 
     // test data
+    var users_v4 = [
+        {
+            _data: {
+                username: "admin",
+                displayName: "Administrator User"
+            }
+        }
+    ];
+    var users = [
+        {
+            username: "admin",
+            name: "Administrator User"
+        }
+    ];
     var projects = [
         {
             id: 'test-folder-id',
             name: 'test project',
-            objectType: 'FOLDER'
+            objectType: 'FOLDER',
+            owner: users[0]
         },
         {
             id: 'test-folder2-id',
             name: 'test2 project',
-            objectType: 'FOLDER'
+            objectType: 'FOLDER',
+            owner: users[0]
         }
     ];
     var scenarios = [
@@ -99,20 +115,7 @@ describe("Project framework", function () {
                 ownerId: 'admin'
             }
         ];
-    var users_v4 = [
-        {
-            _data: {
-                username: "admin",
-                displayName: "Administrator User"
-            }
-        }
-    ];
-    var users = [
-        {
-                username: "admin",
-                name: "Administrator User"
-        }
-    ];
+
 
     beforeEach(function () {
         jasmine.Ajax.install();
@@ -230,136 +233,31 @@ describe("Project framework", function () {
             expect(project.apiVersion()).toEqual(2);
         });
     })
-    describe('createProject()', function () {
-        var newFolder =
-            {
-                id: 'new-folder-id',
-                name: 'new project',
-                objectType: 'FOLDER'
-            };
-
-        var newProjectScenario =
-            {
-                id: 'test-scenario-id',
-                name: 'new project',
-                objectType: 'SCENARIO',
-                scenarioType: 'PROJECT',
-                parent: newFolder
-            };
-
-        var newProjectName = "new project";
-
-        beforeEach(function () {
-            spyOn(project, "_validateProjectName").and.returnValue(true);
-        });
-
-        it("Should fail on an invalid project name", function (done) {
-            project._validateProjectName.and.returnValue(false);
-
-            project.createProject(newProjectName)
-                .then(function () {
-                    fail();
-                })
-                .catch(function () {
-                    expect(project.view.showErrorMessage).toHaveBeenCalledWith(('\"' + newProjectName + '\" is not a valid name for a project.'));
-                    done();
-                });
-        });
-        it("Should create and open a new project", function (done) {
-            spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(newFolder));
-            spyOn(project.api, "createScenario").and.returnValue(Promise.resolve(newProjectScenario));
-            spyOn(project.view, "executeScenario").and.returnValue(Promise.resolve(true));
-            spyOn(project.view, "setShelf").and.returnValue(Promise.resolve());
-            spyOn(insight, "openView").and.returnValue(Promise.resolve());
-
-            project.createProject(newProjectName)
-                .then(function () {
-                    expect(project.api.createRootFolder).toHaveBeenCalledWith(project.app, newProjectName);
-                    expect(project.api.createScenario).toHaveBeenCalledWith(project.app, newFolder, newProjectName, project.config.projectScenarioType);
-                    expect(project.view.executeScenario).toHaveBeenCalledWith(newProjectScenario.id, insight.enums.ExecutionType.LOAD, {suppressClearPrompt: true});
-                    expect(project.view.setShelf).toHaveBeenCalledWith([newProjectScenario.id]);
-                    expect(insight.openView).toHaveBeenCalledWith(project.config.defaultView);
-                    done();
-                })
-                .catch(done.fail);
-        });
-        it("Should report an error when createRootFolder fails", function (done) {
-            spyOn(project.api, "createRootFolder").and.returnValue(Promise.reject());
-
-            project.createProject(newProjectName)
-                .then(done.fail)
-                .catch(function (error) {
-                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to create project');
-                    done(); // expected to fail
-                });
-        });
-        it("Should report an error when createScenario fails", function (done) {
-            spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(newFolder));
-            spyOn(project.api, "createScenario").and.returnValue(Promise.reject());
-
-            project.createProject(newProjectName)
-                .then(done.fail)
-                .catch(function (error) {
-                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to create project');
-                    done(); // expected to fail
-                });
-        });
-        it("Should report an error when executeScenario fails", function (done) {
-            spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(newFolder));
-            spyOn(project.api, "createScenario").and.returnValue(Promise.resolve(newProjectScenario));
-            spyOn(project.view, "executeScenario").and.returnValue(Promise.reject());
-
-            project.createProject(newProjectName)
-                .then(done.fail)
-                .catch(function (error) {
-                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to create project');
-                    done(); // expected to fail
-                });
-        });
-        it("Should report an error when setShelf fails", function (done) {
-            spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(newFolder));
-            spyOn(project.api, "createScenario").and.returnValue(Promise.resolve(newProjectScenario));
-            spyOn(project.view, "executeScenario").and.returnValue(Promise.resolve());
-            spyOn(project.view, "setShelf").and.throwError();
-
-            project.createProject(newProjectName)
-                .then(done.fail)
-                .catch(function (error) {
-                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to create project');
-                    done(); // expected to fail
-                });
-        });
-        it("Should report an error when openView fails", function (done) {
-            spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(newFolder));
-            spyOn(project.api, "createScenario").and.returnValue(Promise.resolve(newProjectScenario));
-            spyOn(project.view, "executeScenario").and.returnValue(Promise.resolve());
-            spyOn(project.view, "setShelf");
-            spyOn(insight, "openView").and.throwError();
-
-            project.createProject(newProjectName)
-                .then(done.fail)
-                .catch(function (error) {
-                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to create project');
-                    done(); // expected to fail
-                });
-        });
-        it("Should report an error when the project name already exists", function (done) {
-            spyOn(project, "currentProjectFolders").and.returnValue(projects);
-
-            project.createProject("test project")
-                .then(done.fail)
-                .catch(function (error) {
-                    expect(project.view.showErrorMessage).toHaveBeenCalledWith("Cannot create. A project exists with the same name");
-                    done(); // expected to fail
-                });
-        });
-
-    });
     describe('refreshProjectList()', function () {
         it("Should call through to _getProjects", function () {
             spyOn(project, "_getProjects");
             project.refreshProjectList();
             expect(project._getProjects).toHaveBeenCalled();
+        });
+    });
+    describe('CreateProject()', function () {
+        it("Should create a project with the supplied name", function (done) {
+            spyOn(project, "_createProject").and.returnValue(Promise.resolve());
+            spyOn(project.dom, "showConfirmationDialog");
+
+            var newName = "abc123  ";
+            project.createProject(newName)
+                .then(() => {
+                    expect(project._createProject).toHaveBeenCalledWith(newName.trim());
+                    done();
+                });
+        });
+        it("Should ask the user for a name if one isnt supplied", function () {
+            spyOn(project, "_createProject");
+            spyOn(project.dom, "showConfirmationDialog");
+
+            project.createProject(null)
+            expect(project.dom.showConfirmationDialog).toHaveBeenCalledWith($("body"), "create", "Create Project", "", "", jasmine.any(Function), "");
         });
     });
     describe('exportProject()', function () {
@@ -477,60 +375,6 @@ describe("Project framework", function () {
             expect(project.dom.showConfirmationDialog).toHaveBeenCalledWith($("body"), "clone", "Clone Project", "", 'Clone Project will clone the project settings only. If you wish to clone your scenarios as well, export the project and then re-import it.', jasmine.any(Function), existingFolder.name + " - copy");
         });
 
-    });
-    describe('_exportProject()', function () {
-        var existingFolder =
-            {
-                id: 'folder-id',
-                name: 'existing project',
-                objectType: 'FOLDER'
-            };
-        var existingProjectScenario =
-            {
-                id: 'project-scenario-id',
-                name: 'existing project',
-                objectType: 'SCENARIO',
-                scenarioType: 'PROJECT',
-                parent: existingFolder
-            };
-
-        it("Should show message and commence file download for V1 interface", function () {
-            spyOn(project, "_getProjectFolderObject").and.returnValue(existingFolder);
-            spyOn(project.dom, "showConfirmationDialog");
-            spyOn(project.dom, "downloadFile");
-            spyOn(project.view, "showInfoMessage");
-
-            spyOn(project.api, "getVersion").and.returnValue(1);
-
-            project._exportProject(existingFolder);
-            expect(project.view.showInfoMessage).toHaveBeenCalledWith('Exporting project \'' + existingFolder.name + '\'...')
-            expect(project.dom.downloadFile).toHaveBeenCalledWith(project.api.BASE_REST_ENDPOINT + 'folder/' + existingFolder.id + '/export');
-        });
-        it("Should commence file download for V2+ interface", function (done) {
-            spyOn(project, "_getProjectFolderObject").and.returnValue(existingFolder);
-            spyOn(project.api, "exportFolder").and.returnValue(Promise.resolve());
-            spyOn(project.api, "getVersion").and.returnValue(2);
-
-            project._exportProject(existingFolder)
-                .then(function () {
-                    expect(project.api.exportFolder).toHaveBeenCalledWith(existingFolder);
-                    done();
-                })
-                .catch(done.fail);
-        });
-        it("Should show an error message if exportfolder fails for the v2 interface", function (done) {
-            spyOn(project.api, "getVersion").and.returnValue(2);
-            spyOn(project, "_getProjectFolderObject").and.returnValue(existingFolder);
-            spyOn(project.api, "exportFolder").and.returnValue(Promise.reject());
-
-            project._exportProject(existingFolder)
-                .then(function () {
-                    expect(project.api.exportFolder).toHaveBeenCalledWith(existingFolder);
-                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to export project \'' + existingFolder.name + '\'');
-                    done();
-                })
-                .catch(done.fail);
-        });
     });
     describe('importProject()', function () {
         var newFolder =
@@ -721,7 +565,6 @@ describe("Project framework", function () {
                 })
                 .catch(done.fail)
         });
-
         it("Should get the list of existing project folders with V2 interface", function (done) {
             var spy = spyOn(project, "currentProjectFolders");
             spyOn(project.api, "getVersion").and.returnValue(2);
@@ -741,7 +584,6 @@ describe("Project framework", function () {
                 })
                 .catch(done.fail)
         });
-
         it("Should show an error when it fails to get the list of folders", function (done) {
             spyOn(project.api, "getProjects").and.returnValue(Promise.reject());
 
@@ -752,6 +594,155 @@ describe("Project framework", function () {
                     done();
                 })
         });
+        it("Should augment the project information with the configured entities", function (done) {
+            var entities = {
+                'attrib1': 123,
+                'attrib2': 456
+            }
+
+            var spy = spyOn(project, "currentProjectFolders");
+            spyOn(project.api, "getVersion").and.returnValue(2);
+            spyOn(project.api, "getProjects").and.returnValue(Promise.resolve(_.cloneDeep(projects)));
+            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve(scenarios[0]));
+            spyOn(project.api, "getScenarioEntities").and.returnValue(Promise.resolve(entities));
+
+            project.config.projectAttributes = ["attrib1", "attrib2"];
+            project._getProjects()
+                .then(function (response) {
+                    expect(project.api.getProjects).toHaveBeenCalledWith(project.appId);
+                    expect(project._getProjectScenarioForFolder).toHaveBeenCalledWith(projects[0].id);
+                    expect(project._getProjectScenarioForFolder).toHaveBeenCalledWith(projects[1].id);
+                    expect(response[0].attributes.attrib1).toEqual(entities.attrib1);
+                    expect(response[1].attributes.attrib2).toEqual(entities.attrib2);
+                    done();
+                })
+                .catch(done.fail)
+        });
+    });
+    describe('_createProject()', function () {
+        var newFolder =
+            {
+                id: 'new-folder-id',
+                name: 'new project',
+                objectType: 'FOLDER'
+            };
+
+        var newProjectScenario =
+            {
+                id: 'test-scenario-id',
+                name: 'new project',
+                objectType: 'SCENARIO',
+                scenarioType: 'PROJECT',
+                parent: newFolder
+            };
+
+        var newProjectName = "new project";
+
+        beforeEach(function () {
+            spyOn(project, "_validateProjectName").and.returnValue(true);
+        });
+
+        it("Should fail on an invalid project name", function (done) {
+            project._validateProjectName.and.returnValue(false);
+
+            project._createProject(newProjectName)
+                .then(function () {
+                    fail();
+                })
+                .catch(function () {
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith(('\"' + newProjectName + '\" is not a valid name for a project.'));
+                    done();
+                });
+        });
+        it("Should create and open a new project", function (done) {
+            spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(newFolder));
+            spyOn(project.api, "createScenario").and.returnValue(Promise.resolve(newProjectScenario));
+            spyOn(project.view, "executeScenario").and.returnValue(Promise.resolve(true));
+            spyOn(project.view, "setShelf").and.returnValue(Promise.resolve());
+            spyOn(insight, "openView").and.returnValue(Promise.resolve());
+
+            project._createProject(newProjectName)
+                .then(function () {
+                    expect(project.api.createRootFolder).toHaveBeenCalledWith(project.app, newProjectName);
+                    expect(project.api.createScenario).toHaveBeenCalledWith(project.app, newFolder, newProjectName, project.config.projectScenarioType);
+                    expect(project.view.executeScenario).toHaveBeenCalledWith(newProjectScenario.id, insight.enums.ExecutionType.LOAD, {suppressClearPrompt: true});
+                    expect(project.view.setShelf).toHaveBeenCalledWith([newProjectScenario.id]);
+                    expect(insight.openView).toHaveBeenCalledWith(project.config.defaultView);
+                    done();
+                })
+                .catch(done.fail);
+        });
+        it("Should report an error when createRootFolder fails", function (done) {
+            spyOn(project.api, "createRootFolder").and.returnValue(Promise.reject());
+
+            project._createProject(newProjectName)
+                .then(done.fail)
+                .catch(function (error) {
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to create project');
+                    done(); // expected to fail
+                });
+        });
+        it("Should report an error when createScenario fails", function (done) {
+            spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(newFolder));
+            spyOn(project.api, "createScenario").and.returnValue(Promise.reject());
+
+            project._createProject(newProjectName)
+                .then(done.fail)
+                .catch(function (error) {
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to create project');
+                    done(); // expected to fail
+                });
+        });
+        it("Should report an error when executeScenario fails", function (done) {
+            spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(newFolder));
+            spyOn(project.api, "createScenario").and.returnValue(Promise.resolve(newProjectScenario));
+            spyOn(project.view, "executeScenario").and.returnValue(Promise.reject());
+
+            project._createProject(newProjectName)
+                .then(done.fail)
+                .catch(function (error) {
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to create project');
+                    done(); // expected to fail
+                });
+        });
+        it("Should report an error when setShelf fails", function (done) {
+            spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(newFolder));
+            spyOn(project.api, "createScenario").and.returnValue(Promise.resolve(newProjectScenario));
+            spyOn(project.view, "executeScenario").and.returnValue(Promise.resolve());
+            spyOn(project.view, "setShelf").and.throwError();
+
+            project._createProject(newProjectName)
+                .then(done.fail)
+                .catch(function (error) {
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to create project');
+                    done(); // expected to fail
+                });
+        });
+        it("Should report an error when openView fails", function (done) {
+            spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(newFolder));
+            spyOn(project.api, "createScenario").and.returnValue(Promise.resolve(newProjectScenario));
+            spyOn(project.view, "executeScenario").and.returnValue(Promise.resolve());
+            spyOn(project.view, "setShelf");
+            spyOn(insight, "openView").and.throwError();
+
+            project._createProject(newProjectName)
+                .then(done.fail)
+                .catch(function (error) {
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to create project');
+                    done(); // expected to fail
+                });
+        });
+        it("Should report an error when the project name already exists", function (done) {
+            spyOn(project, "currentProjectFolders").and.returnValue(projects);
+
+            project._createProject("test project")
+                .then(done.fail)
+                .catch(function (error) {
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith("Cannot create. A project exists with the same name");
+                    done(); // expected to fail
+                });
+        });
+
     });
     describe('_moveToProject()', function () {
         it("Should add the project scenario to the shelf and open the target view", function () {
@@ -1078,6 +1069,60 @@ describe("Project framework", function () {
                 });
         });
     });
+    describe('_exportProject()', function () {
+        var existingFolder =
+            {
+                id: 'folder-id',
+                name: 'existing project',
+                objectType: 'FOLDER'
+            };
+        var existingProjectScenario =
+            {
+                id: 'project-scenario-id',
+                name: 'existing project',
+                objectType: 'SCENARIO',
+                scenarioType: 'PROJECT',
+                parent: existingFolder
+            };
+
+        it("Should show message and commence file download for V1 interface", function () {
+            spyOn(project, "_getProjectFolderObject").and.returnValue(existingFolder);
+            spyOn(project.dom, "showConfirmationDialog");
+            spyOn(project.dom, "downloadFile");
+            spyOn(project.view, "showInfoMessage");
+
+            spyOn(project.api, "getVersion").and.returnValue(1);
+
+            project._exportProject(existingFolder);
+            expect(project.view.showInfoMessage).toHaveBeenCalledWith('Exporting project \'' + existingFolder.name + '\'...')
+            expect(project.dom.downloadFile).toHaveBeenCalledWith(project.api.BASE_REST_ENDPOINT + 'folder/' + existingFolder.id + '/export');
+        });
+        it("Should commence file download for V2+ interface", function (done) {
+            spyOn(project, "_getProjectFolderObject").and.returnValue(existingFolder);
+            spyOn(project.api, "exportFolder").and.returnValue(Promise.resolve());
+            spyOn(project.api, "getVersion").and.returnValue(2);
+
+            project._exportProject(existingFolder)
+                .then(function () {
+                    expect(project.api.exportFolder).toHaveBeenCalledWith(existingFolder);
+                    done();
+                })
+                .catch(done.fail);
+        });
+        it("Should show an error message if exportfolder fails for the v2 interface", function (done) {
+            spyOn(project.api, "getVersion").and.returnValue(2);
+            spyOn(project, "_getProjectFolderObject").and.returnValue(existingFolder);
+            spyOn(project.api, "exportFolder").and.returnValue(Promise.reject());
+
+            project._exportProject(existingFolder)
+                .then(function () {
+                    expect(project.api.exportFolder).toHaveBeenCalledWith(existingFolder);
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to export project \'' + existingFolder.name + '\'');
+                    done();
+                })
+                .catch(done.fail);
+        });
+    });
     describe('_getModalValue', function () {
         var newName = "  a new name  ";
         var event = {
@@ -1105,6 +1150,56 @@ describe("Project framework", function () {
             expect(project._getModalValue(event)).toEqual(newName.trim());
         });
     })
+    describe("_handleCreateConfirmation()", function () {
+        var children = _.cloneDeep(rootChildren_v4);
+        var existingProjectScenario =
+            {
+                id: 'project-scenario-id',
+                name: 'existing project 1',
+                objectType: 'SCENARIO',
+                scenarioType: 'PROJECT',
+                parent: rootChildren_v4[0]
+            };
+        var newProjectName = "renamed project";
+
+        beforeEach(function () {
+            spyOn(project, "_createProject").and.returnValue(Promise.resolve());
+        })
+
+        it("should accept a valid new name", function (done) {
+            var event = "an event";
+            spyOn(project, "_getModalValue").and.returnValue("a new name");
+            spyOn(project, "currentProjectFolders").and.returnValue(children);
+            project._handleCreateConfirmation(event)
+                .then(function () {
+                    expect(project._createProject).toHaveBeenCalledWith("a new name");
+                    expect(project.view.showErrorMessage).not.toHaveBeenCalled();
+                    done();
+                });
+        });
+        it("should reject a valid new name that is already in use", function (done) {
+            spyOn(project, "_getModalValue").and.returnValue("existing project 2");
+            spyOn(project, "currentProjectFolders").and.returnValue(children);
+            project._handleCreateConfirmation(event)
+                .then(done.fail)
+                .catch(function () {
+                    expect(project._createProject).not.toHaveBeenCalled();
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith("Cannot create. A project exists with the same name");
+                    done();
+                });
+        });
+        it("should reject an invalid name", function (done) {
+            spyOn(project, "_getModalValue").and.returnValue("_new name");
+            spyOn(project, "currentProjectFolders").and.returnValue(children);
+            project._handleCreateConfirmation(children[0])
+                .then(done.fail)
+                .catch(function () {
+                    expect(project._createProject).not.toHaveBeenCalled();
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('\"' + "_new name" + '\" is not a valid name for a project.');
+                    done();
+                });
+        });
+    });
     describe("_handleCloneConfirmation()", function () {
         var projectId = "1234";
         var newName = "new name";
@@ -2365,6 +2460,24 @@ describe("Project framework", function () {
                 project.dom.onEscape();
                 expect(project.dom.confirmDialog.modal).toBeDefined();
             });
+            it("Should show a create dialog", function () {
+                var action = "create";
+                var title = "the title";
+                var message1 = "message 1";
+                var message2 = "message 2";
+                var callback = "callback";
+                var currentValue = "";
+                var container = $("<div>");
+
+                var dialogSpy = spyOn(bootbox, "dialog").and.callThrough();
+                project.dom.showConfirmationDialog(container, action, title, message1, message2, callback, currentValue);
+                var config = dialogSpy.calls.all()[0].args[0];
+
+                expect(config.title).toEqual(title);
+                expect(config.message).toMatch(message1);
+                expect(config.message).toMatch(message2);
+                expect(config.buttons.ok.callback).toEqual(callback);
+            });
             it("Should show a share dialog", function () {
                 var action = "share";
                 var title = "the title";
@@ -2427,6 +2540,24 @@ describe("Project framework", function () {
                 expect(config.buttons.ok.callback).toEqual(callback);
                 expect(container.find('.dialogValue').attr('value')).toEqual(currentValue);
             });
+            it("Should show an export dialog", function () {
+                var action = "export";
+                var title = "the title";
+                var message1 = "message 1";
+                var message2 = "message 2";
+                var callback = "callback";
+                var currentValue = "";
+                var container = $("<div>");
+
+                var dialogSpy = spyOn(bootbox, "dialog").and.callThrough();
+                project.dom.showConfirmationDialog(container, action, title, message1, message2, callback, currentValue);
+                var config = dialogSpy.calls.all()[0].args[0];
+
+                expect(config.title).toEqual(title);
+                expect(config.message).toMatch(message1);
+                expect(config.message).toMatch(message2);
+                expect(config.buttons.ok.callback).toEqual(callback);
+            })
             it("Should validate the project name on user edit", function () {
                 var action = "clone";
                 var title = "the title";
@@ -2939,6 +3070,25 @@ describe("Project framework", function () {
                     });
             });
         });
+        describe('InsightRESTAPIv1.getScenarioEntities()', function () {
+            var data = {
+                'attrib1': 123,
+                'attrib2': 456
+            }
+            var config = ["attrib1", "attrib2"];
+
+            it("Should return a map of entities and values", function (done) {
+                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve(_.cloneDeep(data)));
+                project.api.getScenarioEntities(1234, config)
+                    .then(function (response) {
+                        expect(response).toEqual(data);
+                        done();
+                    })
+                    .catch(function (error) {
+                        fail();
+                    });
+            });
+        });
     });
 
     ////// InsightRESTAPI
@@ -3424,7 +3574,7 @@ describe("Project framework", function () {
                     });
             });
         });
-        describe('InsightRESTAPI.waitForUpload', function () {
+        describe('InsightRESTAPI.waitForUpload()', function () {
             function responseFactory(status, importType) {
                 importType = importType ? importType : "FOLDER";
                 return Promise.resolve({
@@ -3531,6 +3681,30 @@ describe("Project framework", function () {
                         expect(window.clearInterval).toHaveBeenCalled();
                         expect(error).toEqual("an error");
                         done();
+                    });
+            });
+        });
+        describe('InsightRESTAPI.getScenarioEntities()', function () {
+            var data = {
+                entities: {
+                    'attrib1': {value: 123},
+                    'attrib2': {value: 456}
+                }
+            }
+            var config = ["attrib1", "attrib2"];
+
+            it("Should return a map of entities and values", function (done) {
+                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve(_.cloneDeep(data)));
+                project.api.getScenarioEntities(1234, config)
+                    .then(function (response) {
+                        expect(response).toEqual({
+                            'attrib1': "123",
+                            'attrib2': "456"
+                        });
+                        done();
+                    })
+                    .catch(function (error) {
+                        fail();
                     });
             });
         });
