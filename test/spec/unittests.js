@@ -553,7 +553,6 @@ describe("Project framework", function () {
 
             project._getProjects()
                 .then(function (response) {
-                    debugger;
                     expect(project.api.getProjects).toHaveBeenCalledWith(project.appId);
 
                     // mock up the user name resolution
