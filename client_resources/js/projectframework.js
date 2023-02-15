@@ -1313,8 +1313,8 @@ class InsightRESTAPIv1 {
                 resolve(data);
             });
 
-            jqXHR.fail((data, textStatus, jqXHR) => {
-                reject(textStatus);
+            jqXHR.fail((jqXHR, textStatus, errorThrow ) => {
+                reject("Request failed: " + textStatus);
             });
         });
     }

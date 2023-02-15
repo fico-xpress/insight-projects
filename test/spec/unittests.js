@@ -2693,7 +2693,7 @@ describe("Project framework", function () {
                         expect(jasmine.Ajax.requests.mostRecent().url).toBe(project.api.BASE_REST_ENDPOINT + path);
                         expect(jasmine.Ajax.requests.mostRecent().method).toBe(type);
                         expect(jasmine.Ajax.requests.mostRecent().params).toBe(data);
-                        expect(response).toBe("error");
+                        expect(response).toBe("Request failed: error");
                         done();
                     });
             });
