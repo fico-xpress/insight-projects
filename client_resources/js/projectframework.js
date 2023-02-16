@@ -19,6 +19,7 @@
 /* global $         */
 /* global _         */
 /* global ko        */
+
 class ProjectFramework {
     /*
     PUBLIC INTERFACE

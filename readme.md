@@ -42,7 +42,7 @@ Include the framework files in the management view.
 
 manage.vdl:
 ```html
- <vdl version="4.8">
+ <vdl version="5">
     <link rel="stylesheet" href="css/projectframework.css">
     <link rel="stylesheet" href="css/font.css">
     <script type="text/javascript" src="js/projectframework.js"></script>
@@ -68,7 +68,7 @@ Make sure this javascript file is included in the VDL view file.
 
 manage.vdl:
 ```html
- <vdl version="4.8">
+ <vdl version="5">
     <link rel="stylesheet" href="css/projectframework.css">
     <link rel="stylesheet" href="css/font.css">
     <script type="text/javascript" src="js/projectframework.js"></script>
@@ -82,24 +82,15 @@ manage.vdl:
  <vdl-page>
         <project-overlay></project-overlay>
 ```
-Include the management form controls in the view, or take a copy of manage.vdl and modify as necessary. The markup for the controls is delineated by comments in the source.  
-
-manage.vdl:
-```html
- <!-- CONTROLS BEGIN -->
-    <div>
-    ....
-    </div>
- <!-- CONTROLS END -->
-   
- ```
+Take a copy of manage.vdl from the accompanying example app and modify as necessary.  
+```
 
 ### Adding a project view
 To add a view that shows/edits the project configuration, include the following framework files in the project view.
 
 data.vdl:
 ```html
- <vdl version="4.8">
+ <vdl version="5">
     <link rel="stylesheet" href="css/projectframework.css">
     <script type="text/javascript" src="js/projectframework.js"></script>
 ```
@@ -146,7 +137,7 @@ To add a view that shows/edits the standard scenarios on the shelf (may optional
 
 setup.vdl:
 ```html
- <vdl version="4.8">
+ <vdl version="5">
     <link rel="stylesheet" href="css/projectframework.css">
     <script type="text/javascript" src="js/projectframework.js"></script>
 ```
@@ -269,7 +260,8 @@ config: {
             manageView: "Manage",                       // the id of the management view
             viewType: "",                               // type of the current view. project | scenario. Any other value means neither 
             projectEntities: [],                        // list of project entities that impact the project revision for the current view. "all" or [entity names]
-            projectRevisionEntity: "ProjectRevision"    // the entity storing the project revision
+            projectRevisionEntity: "ProjectRevision",   // the entity storing the project revision
+            projectAttributes: []                       // List of project entities that will be fetched as extra information available for the project list in the management view
         }
 ```
 
@@ -288,7 +280,7 @@ Font icons used in this example:
     https://icofont.com/license/  
 
 All other content:  
-(c) Copyright 2022 Fair Isaac Corporation  
+(c) Copyright 2023 Fair Isaac Corporation  
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
