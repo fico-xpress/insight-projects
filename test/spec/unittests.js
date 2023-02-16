@@ -3600,11 +3600,9 @@ describe("Project framework", function () {
                         objectType: importType,
                         id: 5678
                     },
-                    errorMessages: {
-                        items: [
+                    errorMessages: [
                             "an error"
                         ]
-                    }
                 });
             };
 

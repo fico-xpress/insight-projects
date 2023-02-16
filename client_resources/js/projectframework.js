@@ -1796,7 +1796,7 @@ class InsightRESTAPI {
                                     });
                                 }
                             } else if (response.status === "ERROR")
-                                throw (response.errorMessages.items[0]);
+                                throw (response.errorMessages[0]);
                             // any other status and we are still going to keep polling
                         })
                         .catch(error => {
