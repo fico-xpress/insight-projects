@@ -40,7 +40,7 @@ class ProjectFramework {
                 projectScenarioType: "PROJECT", // custom scenario type id for project scenario type
                 defaultView: '', // the view that Open Project navigates to
                 manageView: 'Manage', // id of the project management view
-                viewType: "", // type of the current view. project | scenario. Any other value means neither
+                viewType: "", // type of the current view. manage | project | scenario | null (none of those)
                 projectEntities: [], // list of project entities that impact the project revision for the current view. "all" or [entity names]
                 projectRevisionEntity: "ProjectRevision", // the entity storing the project revision,
                 projectAttributes: [] // list of entities that are fetched to augment project object for management view
@@ -1039,7 +1039,6 @@ class ProjectFramework {
             self._getProjects();
             
             // wipe the shelf i.e. close any previous project
-            debugger;
             if (self.view.getScenarioIds().length >= 0)
                 self.view.setShelf([]);
         }
