@@ -1035,8 +1035,14 @@ class ProjectFramework {
             self.api = new InsightRESTAPI();
 
         // fetch the list of project folders for a management view
-        if (self.config.viewType === "manage")
+        if (self.config.viewType === "manage") {
             self._getProjects();
+            
+            // wipe the shelf i.e. close any previous project
+            debugger;
+            if (self.view.getScenarioIds().length >= 0)
+                self.view.setShelf([]);
+        }
 
         /* global VDL */
         VDL('project-overlay', {

@@ -133,6 +133,50 @@ describe("Project framework", function () {
             }
         ];
 
+    var user = {
+        getFullName: function() { return ("Administrator User");}
+    };
+    var app = {
+        getId: function () {
+            return "1234";
+        },
+        createScenario: function () {
+        },
+        createFolder: function () {
+        },
+        getModelSchema: function () {
+            return window.schema;
+        },
+        getUsers: function () {
+        }
+    }
+    var view = {
+        getApp: function () {
+            return app;
+        },
+        executeScenario: function () {
+        },
+        setShelf: function () {
+        },
+        getScenarioIds: function () {},
+        showErrorMessage: function () {
+        },
+        showInfoMessage: function () {},
+        withAllScenarios: function () {
+            return window.observer;
+        },
+        withFirstScenario: function () {
+            return window.observer;
+        },
+        configure: function () {},
+        importFromServer: function() {
+        },
+        getUser: function () {
+            return Promise.resolve(
+                user
+            );
+        }
+    };
 
     beforeEach(function () {
         jasmine.Ajax.install();
@@ -161,51 +205,10 @@ describe("Project framework", function () {
             }
         };
 
+
         window.insight = {
             getView: function () {
-                return {
-                    getApp: function () {
-                        return {
-                            getId: function () {
-                                return "1234";
-                            },
-                            createScenario: function () {
-                            },
-                            createFolder: function () {
-                            },
-                            getModelSchema: function () {
-                                return window.schema;
-                            },
-                            getUsers: function () {
-                            }
-                        }
-                    },
-                    executeScenario: function () {
-                    },
-                    setShelf: function () {
-                    },
-                    getScenarioIds: function () {
-                    },
-                    showErrorMessage: function () {
-                    },
-                    showInfoMessage: function () {},
-                    withAllScenarios: function () {
-                        return window.observer;
-                    },
-                    withFirstScenario: function () {
-                        return window.observer;
-                    },
-                    configure: function () {},
-                    importFromServer: function() {
-                    },
-                    getUser: function () {
-                        return Promise.resolve(
-                            {
-                                getFullName: function() { return ("Administrator User");}
-                            }
-                        );
-                    }
-                };
+                return view;
             },
             openView: function () {
             },
@@ -1483,7 +1486,6 @@ describe("Project framework", function () {
             // reboot into insight 5 mode to get server import capability
             spyOn(insight, "getVersion").and.returnValue(5);
             project._init();
-            spyOn(project.view, "showErrorMessage");
 
             var portationId = 9876;
 
@@ -1517,7 +1519,6 @@ describe("Project framework", function () {
             // reboot into insight 5 mode to get server import capability
             spyOn(insight, "getVersion").and.returnValue(5);
             project._init();
-            spyOn(project.view, "showErrorMessage");
 
             var portationId = 9876;
 
@@ -1773,6 +1774,7 @@ describe("Project framework", function () {
             spyOn(project, "_getProjects");
             spyOn(window, "VDL");
             spyOn(project, "shelfValid").and.returnValue(true);
+            spyOn(project.view, "getScenarioIds").and.returnValue([]);
 
             project.config.viewType = "manage";
             project._init();
@@ -1780,6 +1782,19 @@ describe("Project framework", function () {
             expect(project._getProjects).toHaveBeenCalled();
             expect(project._initShelfValidation).toHaveBeenCalled();
             expect(window.VDL).toHaveBeenCalled();
+        });
+        it("Should clear the shelf for a management view type", function () {
+            spyOn(project.currentProjectFolders, "subscribe");
+            spyOn(project, "_getProjects");
+            spyOn(window, "VDL");
+            spyOn(project, "shelfValid").and.returnValue(true);
+            spyOn(project.view, "getScenarioIds").and.returnValue([1234]);
+            spyOn(project.view, "setShelf");
+
+            project.config.viewType = "manage";
+            project._init();
+
+            expect(project.view.setShelf).toHaveBeenCalledWith([]);
         });
     });
     describe('_validateForProjectPage()', function () {
