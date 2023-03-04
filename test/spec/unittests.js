@@ -233,7 +233,6 @@ describe("Project framework", function () {
         spyOn(project, "_initProjectRevisionTracking");
 
         project.init();
-        expect(project._initShelfValidation).toHaveBeenCalled();
 
         spyOn(project.view, "showErrorMessage");
         project.api.BASE_REST_ENDPOINT = "http://localhost:8860/" + project.api.BASE_REST_ENDPOINT;
@@ -765,11 +764,22 @@ describe("Project framework", function () {
 
     });
     describe('_moveToProject()', function () {
-        it("Should add the project scenario to the shelf and open the target view", function () {
+        it("If there is no saved shelf, should add the project scenario to the shelf and open the target view", function () {
             spyOn(project.view, "setShelf");
             spyOn(insight, "openView");
+            spyOn(project, "_savedShelf").and.returnValue(null);
             project._moveToProject({id: "1234"});
+            expect(project._savedShelf).toHaveBeenCalledWith("1234");
             expect(project.view.setShelf).toHaveBeenCalledWith(["1234"]);
+            expect(insight.openView).toHaveBeenCalledWith(project.config.defaultView);
+        });
+        it("If there is a saved shelf with at least one extra scenario, should set the shelf to that value and open the target view", function () {
+            spyOn(project.view, "setShelf");
+            spyOn(insight, "openView");
+            spyOn(project, "_savedShelf").and.returnValue(["1234", "5678"]);
+            project._moveToProject({id: "1234"});
+            expect(project._savedShelf).toHaveBeenCalledWith("1234");
+            expect(project.view.setShelf).toHaveBeenCalledWith(["1234", "5678"]);
             expect(insight.openView).toHaveBeenCalledWith(project.config.defaultView);
         });
     });
@@ -1761,7 +1771,6 @@ describe("Project framework", function () {
 
             project._init();
 
-            expect(project._initShelfValidation).toHaveBeenCalled();
             expect(window.VDL).toHaveBeenCalled();
             expect(window.VDL.calls.all()[0].args[0]).toEqual('project-overlay');
             var config = window.VDL.calls.all()[0].args[1];
@@ -1780,7 +1789,7 @@ describe("Project framework", function () {
             project._init();
 
             expect(project._getProjects).toHaveBeenCalled();
-            expect(project._initShelfValidation).toHaveBeenCalled();
+            expect(project._initShelfValidation).not.toHaveBeenCalled();
             expect(window.VDL).toHaveBeenCalled();
         });
         it("Should clear the shelf for a management view type", function () {
@@ -1796,6 +1805,31 @@ describe("Project framework", function () {
 
             expect(project.view.setShelf).toHaveBeenCalledWith([]);
         });
+        it("Should initiate shelf validation for a project view", function () {
+            spyOn(project.currentProjectFolders, "subscribe");
+            spyOn(project, "_getProjects");
+            spyOn(window, "VDL");
+            spyOn(project, "shelfValid").and.returnValue(true);
+            spyOn(project.view, "getScenarioIds").and.returnValue([1234]);
+            spyOn(project.view, "setShelf");
+
+            project.config.viewType = "project";
+            project._init();
+            expect(project._initShelfValidation).toHaveBeenCalled();
+        });
+        it("Should initiate shelf validation for a scenario view", function () {
+            spyOn(project.currentProjectFolders, "subscribe");
+            spyOn(project, "_getProjects");
+            spyOn(window, "VDL");
+            spyOn(project, "shelfValid").and.returnValue(true);
+            spyOn(project.view, "getScenarioIds").and.returnValue([1234]);
+            spyOn(project.view, "setShelf");
+
+            project.config.viewType = "scenario";
+            project._init();
+            expect(project._initShelfValidation).toHaveBeenCalled();
+        });
+
     });
     describe('_validateForProjectPage()', function () {
         function scenario(properties, entities) {
@@ -2475,6 +2509,28 @@ describe("Project framework", function () {
             expect(project.api.deleteFolder).toHaveBeenCalledWith(folder);
         });
     });
+    describe("_saveShelf()", function () {
+        var shelf = ["1234567890", "abcdef", "qwerty"];
+
+        it("Should save the current shelf in browser storage against the project scenario id", function () {
+            spyOn(project.view, "getScenarioIds").and.returnValue(shelf);
+            spyOn(Storage.prototype, 'setItem')
+
+            project._saveShelf();
+            expect(window.localStorage.setItem).toHaveBeenCalledWith(shelf[0], JSON.stringify(shelf));
+        });
+    })
+    describe("_savedShelf()", function () {
+        var shelf = ["1234567890", "abcdef", "qwerty"];
+
+        it("Should get the shelf stored in browser storage against the project scenario id", function () {
+            spyOn(Storage.prototype, "getItem").and.returnValue(JSON.stringify(shelf));
+
+            var saved = project._savedShelf(shelf[0]);
+            expect(window.localStorage.getItem).toHaveBeenCalledWith(shelf[0]);
+            expect(saved).toEqual(shelf);
+        });
+    })
     describe("project.dom tests", function () {
         describe("showConfirmationDialog()", function () {
 

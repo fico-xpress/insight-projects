@@ -291,8 +291,16 @@ class ProjectFramework {
     }
     _moveToProject(projectScenario) {
         var self = this;
+        
+        // if we have a saved shelf for this project which is more than just the project scenario
+        var savedShelf = self._savedShelf(projectScenario.id);
+        if (savedShelf && savedShelf.length > 1)
+            // then restore that shelf
+            self.view.setShelf(savedShelf);
+        else
+            // else just put the project scenario on the shelf
+            self.view.setShelf([projectScenario.id]);
 
-        self.view.setShelf([projectScenario.id]);
         insight.openView(this.config.defaultView);
     }
     _getProjectScenarioForFolder(folderId) {
@@ -941,6 +949,9 @@ class ProjectFramework {
                     } else {
                         self.shelfValidationMessage();
                         self.shelfValid(true);
+                        
+                        // its a valid shelf so save it
+                        self._saveShelf();
 
                         self._initProjectRevisionTracking();
                     }
@@ -1018,6 +1029,23 @@ class ProjectFramework {
 
         self.projectRevisionMessage(message);
     }
+    _saveShelf() {
+        var self=this;
+        var shelf = self.view.getScenarioIds();
+        
+        // key by project id. if its a valid shelf then the first id will be the project id
+        var key = shelf[0];
+        var value = JSON.stringify(shelf);
+        
+        window.localStorage.setItem(key, value);
+    }
+    _savedShelf(projectId) {
+        var saved = window.localStorage.getItem(projectId);
+        if (saved)
+            return JSON.parse(saved);
+        else
+            return;
+    }
     _init() {
         var self = this;
 
@@ -1033,16 +1061,7 @@ class ProjectFramework {
             self.api = new InsightRESTAPIv1();
         else
             self.api = new InsightRESTAPI();
-
-        // fetch the list of project folders for a management view
-        if (self.config.viewType === "manage") {
-            self._getProjects();
-            
-            // wipe the shelf i.e. close any previous project
-            if (self.view.getScenarioIds().length >= 0)
-                self.view.setShelf([]);
-        }
-
+        
         /* global VDL */
         VDL('project-overlay', {
             tag: 'project-overlay',
@@ -1052,8 +1071,19 @@ class ProjectFramework {
                 return new OverlayExtension(self);
             }
         });
-
-        self._initShelfValidation();
+        
+        // if this is a project management view
+        if (self.config.viewType === "manage") {
+            // wipe the shelf i.e. close any previous project
+            if (self.view.getScenarioIds().length > 0)
+                self.view.setShelf([]);
+            else
+                // fetch the list of project folders for a management view
+                self._getProjects();
+        }
+        // if this is a project or scenario view
+        else if (self.config.viewType === "project" || self.config.viewType === "scenario")
+            self._initShelfValidation();
     }
 
     dom = {

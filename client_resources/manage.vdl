@@ -36,7 +36,7 @@
                 <vdl-action-set-var var="show" value="all"></vdl-action-set-var>
             </vdl-action-group>
         </vdl-header>
-        <vdl-section heading="Projects" layout="fluid">
+        <vdl-section heading="Projects" layout="fluid" vdl-if="=scenarios.length === 0">
             <vdl-row>
                 <vdl-column size="12">
                     <vdl-container class="toolbar-container">
