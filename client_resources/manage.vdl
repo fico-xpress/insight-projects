@@ -49,11 +49,11 @@
                         <div class="card"  vdl-if="=vars.show === 'own'" vdl-repeat="=project in projectframework.currentOwnProjectFolders()" >
                             <div class="card-options"><a class="dropdown-toggle" data-toggle="dropdown"><i class="fico-dots-three-horizontal"></i></a>
                                 <ul class="dropdown-menu dropdown-menu-right">
-                                    <li><a data-bind="click:window.projectframework.renameProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Rename"></span></a></li>
-                                    <li><a data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Clone"></span></a></li>
-                                    <li><a data-bind="click:window.projectframework.shareProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Share"></span></a></li>
-                                    <li><a data-bind="click:window.projectframework.exportProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Export"></span></a></li>
-                                    <li><a data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="Delete"></span></a></li>
+                                    <li><a data-bind="click:window.projectframework.renameProject.bind(window.projectframework, project.id)"><span vdl-text="Rename"></span></a></li>
+                                    <li><a data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, project.id)"><span vdl-text="Clone"></span></a></li>
+                                    <li><a data-bind="click:window.projectframework.shareProject.bind(window.projectframework, project.id)"><span vdl-text="Share"></span></a></li>
+                                    <li><a data-bind="click:window.projectframework.exportProject.bind(window.projectframework, project.id)"><span vdl-text="Export"></span></a></li>
+                                    <li><a data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, project.id)"><span vdl-text="Delete"></span></a></li>
                                 </ul>
                             </div>
                             <div class="card-title"  data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="=project.name"></span></div>

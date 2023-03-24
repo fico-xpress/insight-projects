@@ -2,7 +2,7 @@
     Insight project framework
 
     Framework for implementing Insight projects
-    
+
     (c) Copyright 2023 Fair Isaac Corporation
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@
     margin-bottom: 0px !important;
 }
 .toolbar i {
-    margin-right: 5px; 
+    margin-right: 5px;
     font-size: 16px;
     color: #00629B;
 }
 .toolbar i:hover {
-    margin-right: 5px; 
+    margin-right: 5px;
     font-size: 16px;
     background-color: #00629B;
     color: white;
@@ -37,9 +37,9 @@
 
 
 /* ***** Card layout ***** */
-.card  { 
+.card  {
     border: 1px solid #90B2CD;
-    border-radius: 0.5rem !important;    
+    border-radius: 0.5rem !important;
     position: relative;
     padding: 10px;
     width: 250px;
@@ -78,7 +78,7 @@
     height: 25px;
     display: -webkit-box;
     -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;  
+    -webkit-box-orient: vertical;
     overflow: hidden;
 }
 .card-footer span {
@@ -104,9 +104,9 @@
     background-color: #cccccc;
     border-radius: 50%;
 }
-.new-card  { 
+.new-card  {
     border: 1px solid #eeeeee;
-    border-radius: 0.5rem !important;    
+    border-radius: 0.5rem !important;
     position: relative;
     text-align: center;
     width: 250px;
@@ -204,4 +204,8 @@
 }
 body {
     padding-right: 0px !important;
+}
+
+.dropdown-menu li>a {
+    line-height: 26px !important;
 }

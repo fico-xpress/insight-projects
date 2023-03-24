@@ -238,14 +238,14 @@ class ProjectFramework {
                             });
                         attrFetches.push(promise);
                     }
-                    
+
                     // wait for all the queries and return the augmented project list
                     return Promise.all(attrFetches)
                         .then(() => projects);
                 }
                 else
                     return projects;
-                
+
             })
             // then compute the list of projects owned by the current user
             .then(projects => {
@@ -255,7 +255,7 @@ class ProjectFramework {
                     for (var i = 0; i < projects.length; i++)
                         if (projects[i].owner.name === currentUser.getFullName())
                             owned.push(projects[i]);
-                 
+
                     // and update the lists
                     self.currentProjectFolders([]);
                     self.currentProjectFolders(projects);
@@ -272,7 +272,7 @@ class ProjectFramework {
     }
     _moveToProject(projectScenario) {
         var self = this;
-        
+
         // if we have a saved shelf for this project which is more than just the project scenario
         var savedShelf = self._savedShelf(projectScenario.id);
         if (savedShelf && savedShelf.length > 1)
@@ -347,7 +347,7 @@ class ProjectFramework {
         var self=this;
         var newScenario;
         var newFolder;
-        
+
         if (!self._validateProjectName(newProjectName)) {
             self.view.showErrorMessage('\"' + newProjectName + '\" is not a valid name for a project.');
             return Promise.reject();
@@ -492,7 +492,7 @@ class ProjectFramework {
     _getModalValue(event) {
         var modal = $(event.target).parents('.modal');
         var name = modal.find('.dialogValue').val();
-        
+
         var trimmed = name.trim();
         return trimmed;
     }
@@ -933,7 +933,7 @@ class ProjectFramework {
                     } else {
                         self.shelfValidationMessage();
                         self.shelfValid(true);
-                        
+
                         // its a valid shelf so save it
                         self._saveShelf();
 
@@ -989,7 +989,7 @@ class ProjectFramework {
             self.projectRevision = scenario.getScalar(self.config.projectRevisionEntity);
         else if (scenario.isEditable()) {
             // dont increment revision on a notify caused by execution status change. use editable flag to determine its a data change event
-            
+
             // our current user caused the data to change, so increment the project revision
             var dataChange = scenario.modify();
             self.projectRevision++;
@@ -1016,11 +1016,11 @@ class ProjectFramework {
     _saveShelf() {
         var self=this;
         var shelf = self.view.getScenarioIds();
-        
+
         // key by project id. if its a valid shelf then the first id will be the project id
         var key = shelf[0];
         var value = JSON.stringify(shelf);
-        
+
         window.localStorage.setItem(key, value);
     }
     _savedShelf(projectId) {
@@ -1063,7 +1063,7 @@ class ProjectFramework {
                 // wipe the shelf i.e. close any previous project
                 if (self.view.getScenarioIds().length > 0)
                     self.view.setShelf([]);
-                else 
+                else
                     // fetch the list of project folders for a management view
                     resolve(self._getProjects());
             }
@@ -1089,6 +1089,9 @@ class ProjectFramework {
         },
         showConfirmationDialog(parent, action, title, message1, message2, callback, currentValue) {
             var self = this;
+            
+            // fix for bootstrap not closing dropdown menus
+            $('.open').removeClass('open');
 
             // message2 gets wrapped in an info box
             if (message2) {
