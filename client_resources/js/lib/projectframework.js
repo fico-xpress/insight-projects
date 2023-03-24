@@ -233,7 +233,7 @@ class ProjectFramework {
                                 return self.api.getScenarioEntities(scenario.id, self.config.projectAttributes)
                             })
                             .then(attribs => {
-                                projects[i]["attributes"] = attribs;
+                                _.merge(projects[i], attribs);
                                 return projects[i];
                             });
                         attrFetches.push(promise);
@@ -1089,7 +1089,7 @@ class ProjectFramework {
         },
         showConfirmationDialog(parent, action, title, message1, message2, callback, currentValue) {
             var self = this;
-            
+
             // fix for bootstrap not closing dropdown menus
             $('.open').removeClass('open');
 

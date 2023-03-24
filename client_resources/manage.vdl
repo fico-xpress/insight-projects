@@ -58,9 +58,9 @@
                             </div>
                             <div class="card-title"  data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="=project.name"></span></div>
                             <div class="card-body"   data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false">
-                             <span class="card-extra-info" vdl-text="=project.attributes.Scalar1"></span>
-                             <span class="card-extra-info" vdl-text="=project.attributes.Scalar2"></span>
-                             <span class="card-extra-info" vdl-text="=project.attributes.Scalar3"></span>
+                             <span class="card-extra-info" vdl-text="=project.Scalar1"></span>
+                             <span class="card-extra-info" vdl-text="=project.Scalar2"></span>
+                             <span class="card-extra-info" vdl-text="=project.Scalar3"></span>
                             </div>
                             <div class="card-footer" data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="='Owner: ' + project.owner.name"></span><i class="fico-icon-users sharing-icon" vdl-if="=project.shareStatus != 'PRIVATE'" title="Shared"></i></div>
                         </div>
@@ -76,9 +76,9 @@
                             </div>
                             <div class="card-title"  data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="=project.name"></span></div>
                             <div class="card-body"   data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false">
-                                <span class="card-extra-info" vdl-text="=project.attributes.Scalar1"></span>
-                                 <span class="card-extra-info" vdl-text="=project.attributes.Scalar2"></span>
-                                 <span class="card-extra-info" vdl-text="=project.attributes.Scalar3"></span>
+                                <span class="card-extra-info" vdl-text="=project.Scalar1"></span>
+                                 <span class="card-extra-info" vdl-text="=project.Scalar2"></span>
+                                 <span class="card-extra-info" vdl-text="=project.Scalar3"></span>
                             </div>
                             <div class="card-footer" data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="='Owner: ' + project.owner.name"></span><i class="fico-icon-users sharing-icon" vdl-if="=project.shareStatus != 'PRIVATE'" title="Shared"></i></div>
                         </div>
@@ -93,36 +93,45 @@
                                     <thead>
                                         <tr>
                                             <th>Name</th>
+                                            <th>Param 1</th>
+                                            <th>Param 2</th>
+                                            <th>Param 3</th>
                                             <th>Owner</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr vdl-if="=vars.show === 'all'" vdl-repeat="=folder in projectframework.currentProjectFolders()" 
-                                            vdl-event="click:window.projectframework.openProject.bind(window.projectframework, folder.id)">
+                                        <tr vdl-if="=vars.show === 'all'" vdl-repeat="=project in projectframework.currentProjectFolders()" 
+                                            vdl-event="click:window.projectframework.openProject.bind(window.projectframework, project.id)">
                                             
-                                            <td class="displayname" vdl-text="=folder.name"></td>
-                                            <td class="owner" vdl-text="=folder.owner.name"></td>
+                                            <td class="displayname" vdl-text="=project.name"></td>
+                                            <td class="param-col" vdl-text="=project.Scalar1"></td>
+                                            <td class="param-col" vdl-text="=project.Scalar2"></td>
+                                            <td class="param-col" vdl-text="=project.Scalar3"></td>
+                                            <td class="owner" vdl-text="=project.owner.name"></td>
                                             <td class="actions" vdl-event="click:function() {}, clickBubble: false">
                                                 <!-- need to use data-bind directly as vdl-event doesnt support clickBubble -->
-                                                <i class="fico-icon-pencil" data-bind="click:window.projectframework.renameProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Rename Project"></vdl-tooltip></i>
-                                                <i class="fico-icon-copy" data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Clone Project"></vdl-tooltip></i>
-                                                <i class="fico-icon-users" data-bind="click:window.projectframework.shareProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Share Project"></vdl-tooltip></i>
-                                                <i class="fico-icon-download" data-bind="click:window.projectframework.exportProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Export Project to Server"></vdl-tooltip></i>
-                                                <i class="fico-icon-trash" data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Delete Project"></vdl-tooltip></i></td>
+                                                <i class="fico-icon-pencil" data-bind="click:window.projectframework.renameProject.bind(window.projectframework, project.id), clickBubble: false"><vdl-tooltip content="Rename Project"></vdl-tooltip></i>
+                                                <i class="fico-icon-copy" data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, project.id), clickBubble: false"><vdl-tooltip content="Clone Project"></vdl-tooltip></i>
+                                                <i class="fico-icon-users" data-bind="click:window.projectframework.shareProject.bind(window.projectframework, project.id), clickBubble: false"><vdl-tooltip content="Share Project"></vdl-tooltip></i>
+                                                <i class="fico-icon-download" data-bind="click:window.projectframework.exportProject.bind(window.projectframework, project.id), clickBubble: false"><vdl-tooltip content="Export Project to Server"></vdl-tooltip></i>
+                                                <i class="fico-icon-trash" data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, project.id), clickBubble: false"><vdl-tooltip content="Delete Project"></vdl-tooltip></i></td>
                                         </tr>
-                                        <tr vdl-if="=vars.show === 'own'" vdl-repeat="=folder in projectframework.currentOwnProjectFolders()" 
-                                            vdl-event="click:window.projectframework.openProject.bind(window.projectframework, folder.id)">
+                                        <tr vdl-if="=vars.show === 'own'" vdl-repeat="=project in projectframework.currentOwnProjectFolders()" 
+                                            vdl-event="click:window.projectframework.openProject.bind(window.projectframework, project.id)">
                                             
-                                            <td class="displayname" vdl-text="=folder.name"></td>
-                                            <td class="owner" vdl-text="=folder.owner.name"></td>
+                                            <td class="displayname" vdl-text="=project.name"></td>
+                                            <td class="param-col" vdl-text="=project.Scalar1"></td>
+                                            <td class="param-col" vdl-text="=project.Scalar2"></td>
+                                            <td class="param-col" vdl-text="=project.Scalar3"></td>
+                                            <td class="owner" vdl-text="=project.owner.name"></td>
                                             <td class="actions" vdl-event="click:function() {}, clickBubble: false">
                                                 <!-- need to use data-bind directly as vdl-event doesnt support clickBubble -->
-                                                <i class="fico-icon-pencil" data-bind="click:window.projectframework.renameProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Rename Project"></vdl-tooltip></i>
-                                                <i class="fico-icon-copy" data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Clone Project"></vdl-tooltip></i>
-                                                <i class="fico-icon-users" data-bind="click:window.projectframework.shareProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Share Project"></vdl-tooltip></i>
-                                                <i class="fico-icon-download" data-bind="click:window.projectframework.exportProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Export Project to Server"></vdl-tooltip></i>
-                                                <i class="fico-icon-trash" data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, folder.id), clickBubble: false"><vdl-tooltip content="Delete Project"></vdl-tooltip></i></td>
+                                                <i class="fico-icon-pencil" data-bind="click:window.projectframework.renameProject.bind(window.projectframework, project.id), clickBubble: false"><vdl-tooltip content="Rename Project"></vdl-tooltip></i>
+                                                <i class="fico-icon-copy" data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, project.id), clickBubble: false"><vdl-tooltip content="Clone Project"></vdl-tooltip></i>
+                                                <i class="fico-icon-users" data-bind="click:window.projectframework.shareProject.bind(window.projectframework, project.id), clickBubble: false"><vdl-tooltip content="Share Project"></vdl-tooltip></i>
+                                                <i class="fico-icon-download" data-bind="click:window.projectframework.exportProject.bind(window.projectframework, project.id), clickBubble: false"><vdl-tooltip content="Export Project to Server"></vdl-tooltip></i>
+                                                <i class="fico-icon-trash" data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, project.id), clickBubble: false"><vdl-tooltip content="Delete Project"></vdl-tooltip></i></td>
                                         </tr>
                                     </tbody>
                                 </table>

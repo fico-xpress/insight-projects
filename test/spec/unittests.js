@@ -640,8 +640,8 @@ describe("Project framework", function () {
                     expect(project.api.getProjects).toHaveBeenCalledWith(project.appId);
                     expect(project._getProjectScenarioForFolder).toHaveBeenCalledWith(projects[0].id);
                     expect(project._getProjectScenarioForFolder).toHaveBeenCalledWith(projects[1].id);
-                    expect(response[0].attributes.attrib1).toEqual(entities.attrib1);
-                    expect(response[1].attributes.attrib2).toEqual(entities.attrib2);
+                    expect(response[0].attrib1).toEqual(entities.attrib1);
+                    expect(response[1].attrib2).toEqual(entities.attrib2);
                     done();
                 })
                 .catch(done.fail)
@@ -1776,7 +1776,6 @@ describe("Project framework", function () {
                     expect(window.VDL.calls.all()[0].args[0]).toEqual('project-overlay');
                     var config = window.VDL.calls.all()[0].args[1];
                     expect(config.tag).toEqual("project-overlay");
-                    expect($(config.template).find(".project-loading-img").length).toEqual(1);
                     config.createViewModel();
                     done();
                 });

@@ -271,9 +271,14 @@ insight.ready(function() {
 
 ### Setting parameters during project create
 
-The method createProject takes a second argument which will be interpeted as a map of model parameters and values. These parameters will be set on the project scenario duriong creation. The example app 
-sets 3 random number parameters on each project. The configuration option "projectAttributes" (see next section) is then used to
-read the values and augment the project list data so that the management view can display on the cards and in the table layout.
+The method createProject takes a second argument which will be interpreted as a map of model parameters and values. These parameters will be set on the project scenario during creation. The example app 
+sets 3 random number parameters on each project. 
+
+### Augmenting project attributes with entity data
+
+The configuration option "projectAttributes" (see next section) specifies a list of entities 
+which will be read from the project scenario of each project when the list of projects is being built. 
+The management view of the example app uses this feature to retrieve and display 3 scalar values for each project.
 
 
 ### Extra details
