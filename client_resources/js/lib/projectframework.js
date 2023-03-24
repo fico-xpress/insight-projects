@@ -1052,7 +1052,7 @@ class ProjectFramework {
             VDL('project-overlay', {
                 tag: 'project-overlay',
                 attributes: [],
-                template: '<div data-bind="visible: projectframework.showLoadingOverlay" class="project-loading-overlay"><img class="project-loading-img" src="../../../../distrib/insight-4.8/images/ajax_loader_109.gif" width="109" height="109"/><span style="display: block;" class="msg" data-bind="text: loadingOverlayMessage"></span><span>Please do not navigate away from the page</span></div>',
+                template: '<div data-bind="visible: projectframework.showLoadingOverlay" class="project-loading-overlay"><vdl-spinner></vdl-spinner><span style="display: block;" class="msg" data-bind="text: loadingOverlayMessage"></span><span>Please do not navigate away from the page</span></div>',
                 createViewModel(params) {
                     return new OverlayExtension(self);
                 }
