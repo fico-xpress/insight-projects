@@ -17,6 +17,8 @@
 
 describe("Project framework", function () {
     'use strict';
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000;
+
     /* global jasmine */
     /* global _ */
     /* global ProjectFramework */
@@ -178,7 +180,7 @@ describe("Project framework", function () {
         }
     };
 
-    beforeEach(function () {
+    beforeEach(function (done) {
         jasmine.Ajax.install();
 
         // mock the insight interface
@@ -220,37 +222,55 @@ describe("Project framework", function () {
             },
             resolveRestEndpoint: jasmine.createSpy().and.callFake(_.identity),
             getVersion: function () {
-                return 4;
-            } // default to V4
+                return 5;
+            } // default to V5
         };
         window.VDL = function() {
         };
-        window.VDL.createVariable = function(v) { return function() { return v; } }
+        window.VDL.createVariable = function(name) {
+            var value;
+            var obj = function (v) {
+                if (v !== undefined)
+                    value = v;
+                return value;
+            };
+            obj.subscribe = function () {};
+            return obj;
+        }
 
         project = new ProjectFramework();
 
-        spyOn(project, "_initShelfValidation");
-        spyOn(project, "_initProjectRevisionTracking");
-
-        project.init();
-
-        spyOn(project.view, "showErrorMessage");
-        project.api.BASE_REST_ENDPOINT = "http://localhost:8860/" + project.api.BASE_REST_ENDPOINT;
+        project.init()
+            .then(() => {
+                spyOn(project.view, "showErrorMessage");
+                spyOn(project, "_initShelfValidation");
+                spyOn(project, "_initProjectRevisionTracking");
+                done();
+            });
     });
     afterEach(function () {
         jasmine.Ajax.uninstall();
     });
 
     describe("apiVersion()", function () {
-        it("Returns an API version of 1 for Insight 4", function () {
+        it("Throws an error for Insight 4", function (done) {
             spyOn(insight, "getVersion").and.returnValue(4);
-            project._init();
-            expect(project.apiVersion()).toEqual(1);
+            project._init()
+                .then(() => {
+                    done.fail();
+                })
+                .catch( err => {
+                   expect(err).toEqual("Unsupported Insight Server version");
+                   done();
+                });
         });
-        it("Returns an API version of 2 for Insight 5", function () {
+        it("Returns an API version of 2 for Insight 5", function (done) {
             spyOn(insight, "getVersion").and.returnValue(5);
-            project._init();
-            expect(project.apiVersion()).toEqual(2);
+            project._init()
+            .then(() => {
+                expect(project.apiVersion()).toEqual(2);
+                done();
+            });
         });
     })
     describe('refreshProjectList()', function () {
@@ -260,7 +280,7 @@ describe("Project framework", function () {
             expect(project._getProjects).toHaveBeenCalled();
         });
     });
-    describe('CreateProject()', function () {
+    describe('createProject()', function () {
         it("Should create a project with the supplied name", function (done) {
             spyOn(project, "_createProject").and.returnValue(Promise.resolve());
             spyOn(project.dom, "showConfirmationDialog");
@@ -268,7 +288,7 @@ describe("Project framework", function () {
             var newName = "abc123  ";
             project.createProject(newName)
                 .then(() => {
-                    expect(project._createProject).toHaveBeenCalledWith(newName.trim());
+                    expect(project._createProject).toHaveBeenCalledWith(newName.trim(), undefined);
                     done();
                 });
         });
@@ -278,6 +298,16 @@ describe("Project framework", function () {
 
             project.createProject(null)
             expect(project.dom.showConfirmationDialog).toHaveBeenCalledWith($("body"), "create", "Create Project", "", "", jasmine.any(Function), "");
+        });
+        it("Should set project parameters if provided", function (done) {
+            spyOn(project, "_createProject").and.returnValue(Promise.resolve());
+            spyOn(project.dom, "showConfirmationDialog");
+
+            project.createProject("project1234", "someparams")
+                .then(() => {
+                    expect(project._createProject).toHaveBeenCalledWith("project1234", "someparams");
+                    done();
+                });
         });
     });
     describe('exportProject()', function () {
@@ -563,27 +593,6 @@ describe("Project framework", function () {
             status: 200,
             responseText: JSON.stringify({items: rootChildren_v4})
         };
-
-        it("Should get the list of existing project folders with V1 interface", function (done) {
-            var spy = spyOn(project, "currentProjectFolders");
-            spyOn(project.app, "getUsers").and.returnValue(Promise.resolve(users_v4));
-            spyOn(project.api, "getVersion").and.returnValue(1);
-            spyOn(project.api, "getProjects").and.returnValue(Promise.resolve([_.cloneDeep(rootChildren_v4[0]), _.cloneDeep(rootChildren_v4[2])]));
-
-            project._getProjects()
-                .then(function (response) {
-                    expect(project.api.getProjects).toHaveBeenCalledWith(project.appId);
-
-                    // mock up the user name resolution
-                    response[0].owner = {name: "Administrator User"};
-                    response[1].owner = {name: "Administrator User"};
-
-                    expect(spy.calls.all()[0].args[0]).toEqual([]);
-                    expect(spy.calls.all()[1].args[0]).toEqual(response);
-                    done();
-                })
-                .catch(done.fail)
-        });
         it("Should get the list of existing project folders with V2 interface", function (done) {
             var spy = spyOn(project, "currentProjectFolders");
             spyOn(project.api, "getVersion").and.returnValue(2);
@@ -761,6 +770,21 @@ describe("Project framework", function () {
                     done(); // expected to fail
                 });
         });
+        it("Should set parameters on the new project if provided", function (done) {
+            spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(newFolder));
+            spyOn(project.api, "createScenario").and.returnValue(Promise.resolve(newProjectScenario));
+            spyOn(project.view, "executeScenario").and.returnValue(Promise.resolve(true));
+            spyOn(project.view, "setShelf").and.returnValue(Promise.resolve());
+            spyOn(insight, "openView").and.returnValue(Promise.resolve());
+            spyOn(project.api, "setScenarioParameters").and.returnValue(Promise.resolve());
+
+            project._createProject(newProjectName, "someparams")
+                .then(function () {
+                    expect(project.api.setScenarioParameters).toHaveBeenCalledWith(newProjectScenario.id, "someparams");
+                    done();
+                })
+                .catch(done.fail);
+        });
 
     });
     describe('_moveToProject()', function () {
@@ -824,10 +848,10 @@ describe("Project framework", function () {
             ];
 
         it("Should reject if no folder id specified", function (done) {
-            project._getProjectScenarioForFolder(/* undefined */)
+            project._getProjectScenarioForFolder()
                 .then(done.fail)
                 .catch(function () {
-                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('This doesn\'t look like a project folder.');
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Missing folder id.');
                     done();
                 });
         });
@@ -1114,19 +1138,6 @@ describe("Project framework", function () {
                 scenarioType: 'PROJECT',
                 parent: existingFolder
             };
-
-        it("Should show message and commence file download for V1 interface", function () {
-            spyOn(project, "_getProjectFolderObject").and.returnValue(existingFolder);
-            spyOn(project.dom, "showConfirmationDialog");
-            spyOn(project.dom, "downloadFile");
-            spyOn(project.view, "showInfoMessage");
-
-            spyOn(project.api, "getVersion").and.returnValue(1);
-
-            project._exportProject(existingFolder);
-            expect(project.view.showInfoMessage).toHaveBeenCalledWith('Exporting project \'' + existingFolder.name + '\'...')
-            expect(project.dom.downloadFile).toHaveBeenCalledWith(project.api.BASE_REST_ENDPOINT + 'folder/' + existingFolder.id + '/export');
-        });
         it("Should commence file download for V2+ interface", function (done) {
             spyOn(project, "_getProjectFolderObject").and.returnValue(existingFolder);
             spyOn(project.api, "exportFolder").and.returnValue(Promise.resolve());
@@ -1492,11 +1503,6 @@ describe("Project framework", function () {
         });
         it("Should orchestrate the server import of the project", function (done) {
             var origin = "SERVER";
-
-            // reboot into insight 5 mode to get server import capability
-            spyOn(insight, "getVersion").and.returnValue(5);
-            project._init();
-
             var portationId = 9876;
 
             spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(workingFolder));
@@ -1525,11 +1531,6 @@ describe("Project framework", function () {
         });
         it("Should show an error if anything went wrong during the server import", function (done) {
             var origin = "SERVER";
-
-            // reboot into insight 5 mode to get server import capability
-            spyOn(insight, "getVersion").and.returnValue(5);
-            project._init();
-
             var portationId = 9876;
 
             var errormsg = "Error during project import. The imported file does not contain a project scenario";
@@ -1764,21 +1765,23 @@ describe("Project framework", function () {
         });
     })
     describe("_init()", function () {
-        it("Should set up subscriptions and register custom overlay extension", function () {
+        it("Should set up subscriptions and register custom overlay extension", function (done) {
             spyOn(project.currentProjectFolders, "subscribe");
             spyOn(window, "VDL");
             spyOn(project, "shelfValid").and.returnValue(true);
 
-            project._init();
-
-            expect(window.VDL).toHaveBeenCalled();
-            expect(window.VDL.calls.all()[0].args[0]).toEqual('project-overlay');
-            var config = window.VDL.calls.all()[0].args[1];
-            expect(config.tag).toEqual("project-overlay");
-            expect($(config.template).find(".project-loading-img").length).toEqual(1);
-            config.createViewModel();
+            project._init()
+                .then(() => {
+                    expect(window.VDL).toHaveBeenCalled();
+                    expect(window.VDL.calls.all()[0].args[0]).toEqual('project-overlay');
+                    var config = window.VDL.calls.all()[0].args[1];
+                    expect(config.tag).toEqual("project-overlay");
+                    expect($(config.template).find(".project-loading-img").length).toEqual(1);
+                    config.createViewModel();
+                    done();
+                });
         });
-        it("Should get list of existing projects for a management view type", function () {
+        it("Should get list of existing projects for a management view type", function (done) {
             spyOn(project.currentProjectFolders, "subscribe");
             spyOn(project, "_getProjects");
             spyOn(window, "VDL");
@@ -1786,13 +1789,15 @@ describe("Project framework", function () {
             spyOn(project.view, "getScenarioIds").and.returnValue([]);
 
             project.config.viewType = "manage";
-            project._init();
-
-            expect(project._getProjects).toHaveBeenCalled();
-            expect(project._initShelfValidation).not.toHaveBeenCalled();
-            expect(window.VDL).toHaveBeenCalled();
+            project._init()
+                .then(() => {
+                    expect(project._getProjects).toHaveBeenCalled();
+                    expect(project._initShelfValidation).not.toHaveBeenCalled();
+                    expect(window.VDL).toHaveBeenCalled();
+                    done();
+                });
         });
-        it("Should clear the shelf for a management view type", function () {
+        it("Should clear the shelf for a management view type that has a non empty shelf", function (done) {
             spyOn(project.currentProjectFolders, "subscribe");
             spyOn(project, "_getProjects");
             spyOn(window, "VDL");
@@ -1801,11 +1806,13 @@ describe("Project framework", function () {
             spyOn(project.view, "setShelf");
 
             project.config.viewType = "manage";
-            project._init();
-
-            expect(project.view.setShelf).toHaveBeenCalledWith([]);
+            project._init()
+                .then(() => {
+                    expect(project.view.setShelf).toHaveBeenCalledWith([]);
+                    done();
+                });
         });
-        it("Should initiate shelf validation for a project view", function () {
+        it("Should initiate shelf validation for a project view", function (done) {
             spyOn(project.currentProjectFolders, "subscribe");
             spyOn(project, "_getProjects");
             spyOn(window, "VDL");
@@ -1814,10 +1821,13 @@ describe("Project framework", function () {
             spyOn(project.view, "setShelf");
 
             project.config.viewType = "project";
-            project._init();
-            expect(project._initShelfValidation).toHaveBeenCalled();
+            project._init()
+                .then(() => {
+                    expect(project._initShelfValidation).toHaveBeenCalled();
+                    done();
+                });
         });
-        it("Should initiate shelf validation for a scenario view", function () {
+        it("Should initiate shelf validation for a scenario view", function (done) {
             spyOn(project.currentProjectFolders, "subscribe");
             spyOn(project, "_getProjects");
             spyOn(window, "VDL");
@@ -1826,8 +1836,11 @@ describe("Project framework", function () {
             spyOn(project.view, "setShelf");
 
             project.config.viewType = "scenario";
-            project._init();
-            expect(project._initShelfValidation).toHaveBeenCalled();
+            project._init()
+                .then(() => {
+                    expect(project._initShelfValidation).toHaveBeenCalled();
+                    done();
+                });
         });
 
     });
@@ -2734,457 +2747,8 @@ describe("Project framework", function () {
         });
     })
 
-    ////// InsightRESTAPIv1
-    describe('InsightRESTAPIv1 tests', function () {
-        beforeEach(function () {
-            spyOn(insight, "getVersion").and.returnValue(4);
-            project.init(); // reboot framework into Insight 4 mode
-        });
-        describe('InsightRESTAPIv1.getVersion()', function () {
-            it("Should return the version which should always be 1", function () {
-                expect(project.api.getVersion()).toEqual(1);
-            });
-        });
-        describe('InsightRESTAPIv1.restRequest()', function () {
-            var path = "/testpath";
-            var type = "POST";
-            var data = "1234";
-            var responseText = {result: 100};
-            var successResponse = {
-                status: 200,
-                responseText: JSON.stringify(responseText)
-            };
-            var failureResponse = {
-                status: 500
-            };
-
-            it("Should return the response as a resolved promise when request is successful", function (done) {
-                jasmine.Ajax.stubRequest(project.api.BASE_REST_ENDPOINT + path).andReturn(successResponse);
-                project.api.restRequest(path, type, data)
-                    .then(function (response) {
-                        expect(jasmine.Ajax.requests.mostRecent().url).toBe(project.api.BASE_REST_ENDPOINT + path);
-                        expect(jasmine.Ajax.requests.mostRecent().method).toBe(type);
-                        expect(jasmine.Ajax.requests.mostRecent().params).toBe(data);
-                        expect(response.result).toBe(100);
-                        done();
-                    })
-                    .catch(done.fail);
-            });
-            it("Should return the response as a rejected promise when request is unsuccessful", function (done) {
-                jasmine.Ajax.stubRequest(project.api.BASE_REST_ENDPOINT + path).andReturn(failureResponse);
-                project.api.restRequest(path, type, data)
-                    .then(function (response) {
-                        fail();
-                    })
-                    .catch(function (response) {
-                        expect(jasmine.Ajax.requests.mostRecent().url).toBe(project.api.BASE_REST_ENDPOINT + path);
-                        expect(jasmine.Ajax.requests.mostRecent().method).toBe(type);
-                        expect(jasmine.Ajax.requests.mostRecent().params).toBe(data);
-                        expect(response).toBe("Request failed: error");
-                        done();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.getProjects()', function () {
-            var children = {
-                items:
-                    [
-                        {objectType: "FOLDER", displayName: "C"},
-                        {objectType: "SCENARIO", displayName: "XXX"},
-                        {objectType: "FOLDER", displayName: "c"},
-                        {objectType: "FOLDER", displayName: "a"},
-                        {objectType: "FOLDER", displayName: "_D"},
-                        {objectType: "FOLDER", displayName: "b"}
-                    ]
-            };
-            var projects = [
-                {objectType: "FOLDER", name: "a"},
-                {objectType: "FOLDER", name: "b"},
-                {objectType: "FOLDER", name: "C"},
-                {objectType: "FOLDER", name: "c"},
-            ];
-
-            it("Should return a sorted, filtered list of projects", function (done) {
-                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve(children));
-
-                project.api.getProjects(project.appId)
-                    .then(function (response) {
-                        expect(response).toEqual(projects);
-                        done();
-                    })
-                    .catch(function (error) {
-                        fail();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.getChildren()', function () {
-            var data = {
-                items:
-                    [
-                        {objectType: "FOLDER", displayName: "C"},
-                        {objectType: "SCENARIO", displayName: "XXX"},
-                        {objectType: "FOLDER", displayName: "c"},
-                        {objectType: "FOLDER", displayName: "a"},
-                        {objectType: "FOLDER", displayName: "_D"},
-                        {objectType: "FOLDER", displayName: "b"}
-                    ]
-            };
-
-            it("Should return a sorted, filtered list of projects", function (done) {
-                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve(_.cloneDeep(data)));
-                project.api.getChildren(project.appId)
-                    .then(function (response) {
-                        var children = _.cloneDeep(data.items);
-                        for (var i = 0; i < children.length; i++) {
-                            children[i].name = children[i].displayName;
-                            delete children[i].displayName;
-                        }
-                        expect(response).toEqual(children);
-                        done();
-                    })
-                    .catch(function (error) {
-                        fail();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.createScenario()', function () {
-            var newScenario = {
-                displayname: "New",
-                objectType: "SCENARIO",
-                scenarioType: "PROJECT",
-                id: "1234"
-            };
-            var parent = {
-                displayName: "parent",
-                objectType: "FOLDER",
-                id: "5678"
-            };
-            var desiredType = "PROJECT";
-            var desiredName = "New";
-
-            it("Should call app.createScenario and normalize the name field", function (done) {
-                spyOn(project.app, "createScenario").and.returnValue(Promise.resolve(_.cloneDeep(newScenario)));
-                project.api.createScenario(project.app, parent, desiredName, desiredType)
-                    .then(function (response) {
-                        expect(project.app.createScenario).toHaveBeenCalledWith(parent, desiredName, desiredType);
-                        var scenario = _.cloneDeep(newScenario);
-                        scenario.name = scenario.displayName;
-                        delete scenario.displayName;
-                        expect(response).toEqual(scenario);
-                        done();
-                    })
-                    .catch(function (error) {
-                        fail();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.cloneScenario()', function () {
-            var sourceScenario = {
-                displayName: "current name",
-                id: "1234"
-            };
-            var parent = {
-                displayName: "a folder",
-                id: "5678",
-                objectType: "FOLDER",
-                url: "blah"
-            };
-            var newName = "new name";
-
-            it("Should POST to /scenario to clone the source scenario", function (done) {
-                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve());
-                project.api.cloneScenario(sourceScenario.id, parent, newName)
-                    .then(function (response) {
-                        var payload = {
-                            displayName: newName,
-                            sourceScenarioId: sourceScenario.id,
-                            parent: parent
-                        };
-                        expect(project.api.restRequest).toHaveBeenCalledWith("scenario", "POST", JSON.stringify(payload));
-                        done();
-                    })
-                    .catch(function (error) {
-                        fail();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.createRootFolder()', function () {
-
-            var newFolder = {
-                displayName: "new project",
-                id: "5678",
-                objectType: "FOLDER",
-                url: "blah"
-            };
-
-            it("Should call app.CreateFolder to create a folder in the root", function (done) {
-                spyOn(project.app, "createFolder").and.returnValue(Promise.resolve(_.cloneDeep(newFolder)));
-                project.api.createRootFolder(project.app, newFolder.displayName)
-                    .then(function (response) {
-                        var folder = _.cloneDeep(newFolder);
-                        folder.name = folder.displayName;
-                        delete folder.displayName;
-                        expect(project.app.createFolder).toHaveBeenCalledWith(newFolder.displayName);
-                        expect(response).toEqual(folder);
-                        done();
-                    })
-                    .catch(function (error) {
-                        fail();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.deleteFolder()', function () {
-            var folder = {
-                displayName: "a folder",
-                id: "5678",
-                objectType: "FOLDER",
-                url: "blah"
-            };
-
-            it("Should DELETE to /folder to delete the folder", function (done) {
-                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve());
-                project.api.deleteFolder(folder.id)
-                    .then(function (response) {
-                        expect(project.api.restRequest).toHaveBeenCalledWith("folder/" + folder.id, "DELETE");
-                        done();
-                    })
-                    .catch(function (error) {
-                        fail();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.renameScenario()', function () {
-            var scenarioId = "1234";
-            var newName = "new name";
-
-            it("Should POST to /scenario to rename the scenario", function (done) {
-                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve());
-                project.api.renameScenario(scenarioId, newName)
-                    .then(function (response) {
-                        var expectedPayload = {
-                            id: scenarioId,
-                            displayName: newName
-                        };
-                        expect(project.api.restRequest).toHaveBeenCalledWith("scenario/" + scenarioId, "POST", JSON.stringify(expectedPayload));
-                        done();
-                    })
-                    .catch(function (error) {
-                        fail();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.renameFolder()', function () {
-            var folderId = "1234";
-            var newName = "new name";
-
-            it("Should POST to /folder to rename the folder", function (done) {
-                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve());
-                project.api.renameFolder(folderId, newName)
-                    .then(function (response) {
-                        var expectedPayload = {
-                            id: folderId,
-                            displayName: newName
-                        };
-                        expect(project.api.restRequest).toHaveBeenCalledWith("folder/" + folderId, "POST", JSON.stringify(expectedPayload));
-                        done();
-                    })
-                    .catch(function (error) {
-                        fail();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.shareScenario()', function () {
-            var id = "1234";
-            var shareStatus = "READONLY";
-
-            it("Should POST to /scenario to rename the scenario", function (done) {
-                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve());
-                project.api.shareScenario(id, shareStatus)
-                    .then(function (response) {
-                        var expectedPayload = {
-                            id: id,
-                            shareStatus: shareStatus
-                        };
-                        expect(project.api.restRequest).toHaveBeenCalledWith("scenario/" + id, "POST", JSON.stringify(expectedPayload));
-                        done();
-                    })
-                    .catch(function (error) {
-                        fail();
-                    });
-            });
-            it("Should reject an invalid share status", function (done) {
-                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve());
-                project.api.shareScenario(id, "invalid share status")
-                    .then(function (response) {
-                        fail();
-                    })
-                    .catch(function (error) {
-                        done();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.shareFolder()', function () {
-            var id = "1234";
-            var shareStatus = "READONLY";
-
-            it("Should POST to /folder to rename the folder", function (done) {
-                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve());
-                project.api.shareFolder(id, shareStatus)
-                    .then(function (response) {
-                        var expectedPayload = {
-                            id: id,
-                            shareStatus: shareStatus
-                        };
-                        expect(project.api.restRequest).toHaveBeenCalledWith("folder/" + id, "POST", JSON.stringify(expectedPayload));
-                        done();
-                    })
-                    .catch(function (error) {
-                        fail();
-                    });
-            });
-            it("Should reject an invalid share status", function (done) {
-                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve());
-                project.api.shareFolder(id, "invalid share status")
-                    .then(function (response) {
-                        fail();
-                    })
-                    .catch(function (error) {
-                        done();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.moveFolderToRoot()', function () {
-            var folder = {
-                id: "1234",
-                name: "a folder"
-            };
-            var expectedPayload = {
-                id: folder.id,
-                displayName: folder.name
-            };
-
-            it("Should POST to /project to move the folder to the root", function (done) {
-                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve(_.cloneDeep(expectedPayload)));
-                project.api.moveFolderToRoot(project.appId, folder)
-                    .then(function (response) {
-                        expect(project.api.restRequest).toHaveBeenCalledWith("project/" + project.appId + "/children", "POST", JSON.stringify(expectedPayload));
-                        expect(response).toEqual(folder);
-                        done();
-                    })
-                    .catch(function (error) {
-                        fail();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.getFolderExportDownloadURL()', function () {
-            var folder = {
-                id: "1234",
-                name: "a folder"
-            };
-
-            it("Should return a URL to the folder export resource", function () {
-                expect(project.api.getFolderExportDownloadURL(folder.id)).toEqual(project.api.BASE_REST_ENDPOINT + "folder/" + folder.id + "/export");
-            });
-        });
-        describe('InsightRESTAPIv1.uploadImportFile()', function () {
-            it("Should post the file to the server", function (done) {
-                var tempFoldername = "importProject_1234";
-                var files = [
-                    "a file"
-                ];
-                var folder = {
-                    id: "import-target-id",
-                    name: "importProject_1234",
-                    objectType: "FOLDER",
-                    url: "url//"
-                };
-                var formData = new FormData();
-                formData.append("scenarios-file", files[0]);
-                formData.append("parent-json", JSON.stringify(folder));
-                var responseData = {
-                    scenarios: {
-                        items: [1, 2, 3]
-                    },
-                    folders: {
-                        items: [4, 5, 6]
-                    }
-                };
-                var successResponse = {
-                    status: 200,
-                    responseText: JSON.stringify(responseData)
-                };
-
-
-                jasmine.Ajax.stubRequest(project.api.BASE_REST_ENDPOINT + "scenario").andReturn(successResponse);
-
-                project.api.uploadImportFile(folder, files)
-                    .then(function (response) {
-                        expect(jasmine.Ajax.requests.mostRecent().url).toBe(project.api.BASE_REST_ENDPOINT + "scenario");
-                        expect(jasmine.Ajax.requests.mostRecent().params).toEqual(formData);
-                        done();
-                    })
-                    .catch(done.fail);
-            });
-            it("Should reject if the ajax call to /scenario fails", function (done) {
-                var tempFoldername = "importProject_1234";
-                var files = [
-                    "a file"
-                ];
-                var folder = {
-                    id: "import-target-id",
-                    name: "importProject_1234",
-                    objectType: "FOLDER",
-                    url: "url//"
-                };
-                var formData = new FormData();
-                formData.append("scenarios-file", files[0]);
-                formData.append("parent-json", JSON.stringify(folder));
-                var successResponse = {
-                    status: 200,
-                    responseText: JSON.stringify({'blah': 'blah'})
-                };
-                var failResponse = {
-                    status: 500
-                };
-
-                jasmine.Ajax.stubRequest(project.api.BASE_REST_ENDPOINT + "scenario").andReturn(failResponse);
-
-                project.api.uploadImportFile(folder, files)
-                    .then(function (response) {
-                        done.fail()
-                    })
-                    .catch(function () {
-                        done();
-                    });
-            });
-        });
-        describe('InsightRESTAPIv1.getScenarioEntities()', function () {
-            var data = {
-                'attrib1': 123,
-                'attrib2': 456
-            }
-            var config = ["attrib1", "attrib2"];
-
-            it("Should return a map of entities and values", function (done) {
-                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve(_.cloneDeep(data)));
-                project.api.getScenarioEntities(1234, config)
-                    .then(function (response) {
-                        expect(response).toEqual(data);
-                        done();
-                    })
-                    .catch(function (error) {
-                        fail();
-                    });
-            });
-        });
-    });
-
     ////// InsightRESTAPI
     describe('InsightRESTAPI tests', function () {
-        beforeEach(function () {
-            spyOn(insight, "getVersion").and.returnValue(5);
-            project.init(); // reboot framework into Insight 5+ mode
-        });
         describe('InsightRESTAPI.getVersion()', function () {
             it("Should return the version which should be 2", function () {
                 expect(project.api.getVersion()).toEqual(2);
@@ -3522,6 +3086,7 @@ describe("Project framework", function () {
                         fail();
                     })
                     .catch(function (error) {
+                        expect(project.api.restRequest).not.toHaveBeenCalled();
                         done();
                     });
             });
@@ -3552,6 +3117,7 @@ describe("Project framework", function () {
                         fail();
                     })
                     .catch(function (error) {
+                        expect(project.api.restRequest).not.toHaveBeenCalled();
                         done();
                     });
             });
@@ -3641,7 +3207,10 @@ describe("Project framework", function () {
                     .then(function (response) {
                         done.fail();
                     })
-                    .catch(done);
+                    .catch(() => {
+                        expect().nothing();
+                        done();
+                    });
             });
         });
         describe('InsightRESTAPI.exportFolder()', function () {
@@ -3787,6 +3356,58 @@ describe("Project framework", function () {
                             'attrib1': "123",
                             'attrib2': "456"
                         });
+                        done();
+                    })
+                    .catch(function (error) {
+                        fail();
+                    });
+            });
+        });
+        describe('InsightRESTAPI.setScenarioParameters()', function () {
+            var data = {
+                entities: {
+                    'attrib1': {value: 123},
+                    'attrib2': {value: 456}
+                }
+            }
+            var config = ["attrib1", "attrib2"];
+
+            it("Should set the parameter values for the scenario", function (done) {
+                spyOn(project.api, "restRequest").and.returnValue(Promise.resolve());
+
+                var params = {
+                    'param1' : 1234,
+                    'param2' : 5678
+                }
+                var request = {
+                    deltas: [
+                        {
+                            "entityName": "parameters",
+                            "dimension":0,
+                            "arrayDelta":
+                                {
+                                    "add":[
+                                        {
+                                            'key': ['param1'],
+                                            'value': "1234"
+                                        },
+                                        {
+                                            'key': ['param2'],
+                                            'value': "5678"
+                                        }
+                                    ]
+                                }
+                        }
+                    ]
+                };
+
+                project.api.setScenarioParameters("abcd", params)
+                    .then(function () {
+                        expect(project.api.restRequest).toHaveBeenCalledWith(
+                            'scenarios/abcd/data',
+                            'PATCH',
+                            JSON.stringify(request)
+                        );
                         done();
                     })
                     .catch(function (error) {

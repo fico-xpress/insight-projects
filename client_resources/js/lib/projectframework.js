@@ -18,20 +18,19 @@
 /* global insight   */
 /* global $         */
 /* global _         */
-/* global ko        */
 
 class ProjectFramework {
     /*
     PUBLIC INTERFACE
     */
 
-    currentProjectFolders = ko.observable([]);
-    currentOwnProjectFolders = ko.observable([]);
-    newProjectName = ko.observable();
-    showLoadingOverlay = ko.observable();
-    shelfValid = ko.observable(false);
-    shelfValidationMessage = ko.observable();
-    projectRevisionMessage = ko.observable();
+    currentProjectFolders = VDL.createVariable([]);
+    currentOwnProjectFolders = VDL.createVariable([]);
+    newProjectName = VDL.createVariable();
+    showLoadingOverlay = VDL.createVariable();
+    shelfValid = VDL.createVariable(false);
+    shelfValidationMessage = VDL.createVariable();
+    projectRevisionMessage = VDL.createVariable();
 
     constructor (userconfig) {
         $.extend(this, {
@@ -50,19 +49,19 @@ class ProjectFramework {
     }
     init() {
         var self = this;
-        self._init();
+        return self._init();
     }
     apiVersion() {
         var self = this;
         return self.api.version;
     }
-    createProject(newProjectName) {
+    createProject(newProjectName, params) {
         var self = this;
 
         // if a name has been supplied
         if (newProjectName) {
             newProjectName = newProjectName.trim();
-            return self._createProject(newProjectName);
+            return self._createProject(newProjectName, params);
         }
         else {
             // launch the create dialog
@@ -96,6 +95,7 @@ class ProjectFramework {
     }
     renameProject(projectFolderId) {
         var self = this;
+
         var projectFolder = self._getProjectFolderObject(projectFolderId);
 
         self.dom.showConfirmationDialog(
@@ -221,25 +221,6 @@ class ProjectFramework {
         var self = this;
 
         return self.api.getProjects(self.appId)
-            .then((projects) => {
-                // v4 needs username to user name resolution
-                if (self.api.getVersion() === 1)
-                    return self.app.getUsers()
-                        .then(response => {
-                            var users = {};
-                            for (var i = 0; i < response.length; i++)
-                                users[response[i]._data.username] = response[i]._data.displayName;
-
-                            for (var i = 0; i < projects.length; i++)
-                                projects[i].owner = {
-                                    name: users[projects[i].ownerId]
-                                };
-                            
-                            return projects;
-                        });
-                else
-                    return projects;
-            })
             // then fetch any additional attributes for each project
             .then(projects => {
                 if (self.config.projectAttributes && self.config.projectAttributes.length > 0) {
@@ -307,7 +288,7 @@ class ProjectFramework {
         var self = this;
 
         if (!folderId) {
-            self.view.showErrorMessage('This doesn\'t look like a project folder.');
+            self.view.showErrorMessage('Missing folder id.');
             return Promise.reject();
         }
         return self.api.getChildren(folderId)
@@ -362,7 +343,7 @@ class ProjectFramework {
         else
             return Promise.reject();
     }
-    _createProject(newProjectName) {
+    _createProject(newProjectName, params) {
         var self=this;
         var newScenario;
         var newFolder;
@@ -391,7 +372,15 @@ class ProjectFramework {
             })
             .then(scenario => {
                 newScenario = scenario;
-                return self.view.executeScenario(scenario.id, insight.enums.ExecutionType.LOAD, {
+
+                // if we were asked to set entity values then set them
+                if (params)
+                    return self.api.setScenarioParameters(newScenario.id, params);
+                else
+                    return scenario;
+            })
+            .then(() => {
+                return self.view.executeScenario(newScenario.id, insight.enums.ExecutionType.LOAD, {
                     suppressClearPrompt: true
                 });
             })
@@ -622,20 +611,15 @@ class ProjectFramework {
     }
     _exportProject(projectFolder) {
         var self = this;
-        if (self.api.getVersion() === 1) {
-            // syncronous browser download for Insight 4 servers
-            self.view.showInfoMessage('Exporting project \'' + projectFolder.name + '\'...');
-            self.dom.downloadFile(self.api.getFolderExportDownloadURL(projectFolder.id));
-        } else {
-            // async export to server location for Insight 5
-            return self.api.exportFolder(projectFolder)
-                .then(() => {
-                    self.view.showInfoMessage('Exporting project \'' + projectFolder.name + '\'. See Tasks Dialog for status.');
-                })
-                .catch(() => {
-                    self.view.showErrorMessage('Failed to export project \'' + projectFolder.name + '\'');
-                });
-        }
+
+        // async export to server location for Insight 5
+        return self.api.exportFolder(projectFolder)
+            .then(() => {
+                self.view.showInfoMessage('Exporting project \'' + projectFolder.name + '\'. See Tasks Dialog for status.');
+            })
+            .catch(() => {
+                self.view.showErrorMessage('Failed to export project \'' + projectFolder.name + '\'');
+            });
     }
     _importProject(projectName, origin) {
         var self = this;
@@ -1049,41 +1033,48 @@ class ProjectFramework {
     _init() {
         var self = this;
 
-        self.view = insight.getView();
-        self.app = self.view.getApp();
-        self.appId = self.app.getId();
-        self.schema = self.app.getModelSchema();
+        return new Promise((resolve, reject) => {
+            self.view = insight.getView();
+            self.app = self.view.getApp();
+            self.appId = self.app.getId();
+            self.schema = self.app.getModelSchema();
 
-        self.importOverlayDelay = 2000;
+            self.importOverlayDelay = 2000;
 
-        // auto detect the insight version number
-        if (typeof insight.getVersion == 'undefined' || insight.getVersion() === 4 || insight.getVersion().major === 4)
-            self.api = new InsightRESTAPIv1();
-        else
-            self.api = new InsightRESTAPI();
-        
-        /* global VDL */
-        VDL('project-overlay', {
-            tag: 'project-overlay',
-            attributes: [],
-            template: '<div data-bind="visible: projectframework.showLoadingOverlay" class="project-loading-overlay"><img class="project-loading-img" src="../../../../distrib/insight-4.8/images/ajax_loader_109.gif" width="109" height="109"/><span style="display: block;" class="msg" data-bind="text: loadingOverlayMessage"></span><span>Please do not navigate away from the page</span></div>',
-            createViewModel(params) {
-                return new OverlayExtension(self);
+            // auto detect the insight version number
+            if (typeof insight.getVersion == 'undefined' || insight.getVersion() === 4 || insight.getVersion().major === 4) {
+                reject("Unsupported Insight Server version")
             }
-        });
-        
-        // if this is a project management view
-        if (self.config.viewType === "manage") {
-            // wipe the shelf i.e. close any previous project
-            if (self.view.getScenarioIds().length > 0)
-                self.view.setShelf([]);
             else
-                // fetch the list of project folders for a management view
-                self._getProjects();
-        }
-        // if this is a project or scenario view
-        else if (self.config.viewType === "project" || self.config.viewType === "scenario")
-            self._initShelfValidation();
+                self.api = new InsightRESTAPI();
+
+            /* global VDL */
+            VDL('project-overlay', {
+                tag: 'project-overlay',
+                attributes: [],
+                template: '<div data-bind="visible: projectframework.showLoadingOverlay" class="project-loading-overlay"><img class="project-loading-img" src="../../../../distrib/insight-4.8/images/ajax_loader_109.gif" width="109" height="109"/><span style="display: block;" class="msg" data-bind="text: loadingOverlayMessage"></span><span>Please do not navigate away from the page</span></div>',
+                createViewModel(params) {
+                    return new OverlayExtension(self);
+                }
+            });
+
+            // if this is a project management view
+            if (self.config.viewType === "manage") {
+                // wipe the shelf i.e. close any previous project
+                if (self.view.getScenarioIds().length > 0)
+                    self.view.setShelf([]);
+                else 
+                    // fetch the list of project folders for a management view
+                    resolve(self._getProjects());
+            }
+            // if this is a project or scenario view
+            else if (self.config.viewType === "project" || self.config.viewType === "scenario") {
+                self._initShelfValidation();
+                resolve(true);
+            }
+
+            resolve(true);
+        });
     }
 
     dom = {
@@ -1279,7 +1270,7 @@ class OverlayExtension {
         this.framework = parent;
         this.registerEventListeners();
     }
-    loadingOverlayMessage = ko.observable('');
+    loadingOverlayMessage = VDL.createVariable('');
     registerEventListeners() {
         var self = this;
         $(window)
@@ -1317,249 +1308,6 @@ class OverlayExtension {
         self.loadingOverlayMessage(message);
     }
 };
-
-// REST API interface for v1 of the REST API (Insight 4)
-class InsightRESTAPIv1 {
-    BASE_REST_ENDPOINT =  '/data/';
-    contentNegotiation = 'application/json';
-
-    constructor() {
-        this.version = 1;
-    }
-    getVersion() {
-        var self = this;
-        return self.version;
-    }
-    restRequest(path, type, data) {
-        var self = this;
-        var request = {
-            url: insight.resolveRestEndpoint(self.BASE_REST_ENDPOINT + path),
-            type: type,
-            data: data,
-            headers: {
-                'Accept': self.contentNegotiation,
-                'Content-Type': self.contentNegotiation + ';charset=UTF-8'
-            }
-        };
-
-        return new Promise((resolve, reject) => {
-            var jqXHR = $.ajax(request);
-
-            jqXHR.done((data, textStatus, jqXHR) => {
-                resolve(data);
-            });
-
-            jqXHR.fail((jqXHR, textStatus, errorThrow ) => {
-                reject("Request failed: " + textStatus);
-            });
-        });
-    }
-    getProjects(appId) {
-        var self = this;
-        return self.restRequest('project/' + appId + '/children?maxResults=9999', 'GET')
-            .then(data => {
-                var projects = [];
-                var children = data.items;
-
-                // filter out scenarios, projects are root folders
-                for (var i = 0; i < children.length; i++) {
-                    var child = children[i];
-                    // mask out those starting with underscore
-                    if (child.objectType === 'FOLDER' && !(child.displayName.indexOf("_") === 0)) {
-                        projects.push(child);
-                    }
-                };
-
-                // standardize on name
-                for (var i = 0; i < projects.length; i++) {
-                    projects[i].name = projects[i].displayName;
-                    delete projects[i].displayName;
-                }
-
-
-                // sort case insensitive
-                projects.sort((a, b) => {
-                    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-                });
-
-                return projects;
-            });
-    }
-    getChildren(folderId) {
-        var self = this;
-        return self.restRequest('folder/' + folderId + '/children?maxResults=9999', 'GET')
-            .then(data => {
-                var children = data.items;
-
-                // standarize naming property
-                for (var i = 0; i < children.length; i++) {
-                    children[i].name = children[i].displayName;
-                    delete children[i].displayName;
-                }
-                return children;
-            });
-    }
-    createScenario(app, parent, name, type) {
-        var self = this;
-
-        return app.createScenario(parent, name, type)
-            .then(scenario => {
-                // standarize name property
-                scenario.name = scenario.displayName;
-                delete scenario.displayName;
-                return scenario;
-            });
-    }
-    cloneScenario(scenarioId, parent, newName) {
-        var self = this;
-
-        var payload = {
-            displayName: newName,
-            sourceScenarioId: scenarioId,
-            parent: {
-                displayName: parent.displayName,
-                id: parent.id,
-                objectType: parent.objectType,
-                url: parent.url
-            }
-        };
-
-        return self.restRequest('scenario', 'POST', JSON.stringify(payload));
-    }
-    createRootFolder(app, name) {
-        var self = this;
-
-        // no parent specified == root folder
-        return app.createFolder(name)
-            .then(folder => {
-                // standarize name property
-                folder.name = folder.displayName;
-                delete folder.displayName;
-                return folder;
-            });
-    }
-    deleteFolder(id) {
-        var self = this;
-        return self.restRequest('folder/' + id, 'DELETE');
-    }
-    renameScenario(scenarioId, newName) {
-        var self = this;
-
-        var payload = {
-            id: scenarioId,
-            displayName: newName
-        };
-        return self.restRequest('scenario/' + scenarioId, 'POST', JSON.stringify(payload));
-    }
-    renameFolder(folderId, newName) {
-        var self = this;
-
-        var payload = {
-            id: folderId,
-            displayName: newName
-        };
-        return self.restRequest('folder/' + folderId, 'POST', JSON.stringify(payload));
-    }
-    shareScenario(id, shareStatus) {
-        var self = this;
-
-        if (shareStatus !== "PRIVATE" && shareStatus !== "READONLY" && shareStatus !== "FULLACCESS")
-            return Promise.reject("Invalid share status");
-
-        var payload = {
-            id: id,
-            shareStatus: shareStatus
-        };
-        return self.restRequest('scenario/' + id, 'POST', JSON.stringify(payload));
-    }
-    shareFolder(id, shareStatus) {
-        var self = this;
-
-        if (shareStatus !== "PRIVATE" && shareStatus !== "READONLY" && shareStatus !== "FULLACCESS")
-            return Promise.reject("Invalid share status");
-
-        var payload = {
-            id: id,
-            shareStatus: shareStatus
-        };
-        return self.restRequest('folder/' + id, 'POST', JSON.stringify(payload));
-    }
-    moveFolderToRoot(appId, folder) {
-        var self = this;
-
-        // deep clone the folder natively
-        var payload = JSON.parse(JSON.stringify(folder));
-        // adjust the fields to REST v1 convention
-        payload.displayName = payload.name;
-        delete payload.name;
-
-        return self.restRequest('project/' + appId + '/children', 'POST', JSON.stringify(payload))
-            .then(newFolder => {
-                // standarize name property
-                newFolder.name = newFolder.displayName;
-                delete newFolder.displayName;
-                return newFolder;
-            });
-    }
-    getFolderExportDownloadURL(folderId) {
-        var self = this;
-        return insight.resolveRestEndpoint(self.BASE_REST_ENDPOINT + 'folder/' + folderId + '/export');
-    }
-    uploadImportFile(workingFolder, fileUploads) {
-        var self = this;
-
-        var file = fileUploads[0];
-        var formData = new FormData();
-
-        formData.append("scenarios-file", file);
-        formData.append("parent-json", JSON.stringify({
-            id: workingFolder.id,
-            displayName: workingFolder.displayName,
-            objectType: workingFolder.objectType,
-            url: workingFolder.url
-        }));
-
-        var request = {
-            url: insight.resolveRestEndpoint(this.BASE_REST_ENDPOINT + 'scenario'),
-            data: formData,
-            cache: false,
-            context: {
-                "scenarios-file": file.name,
-                "size": file.size
-            },
-            contentType: false,
-            processData: false,
-            dataType: 'json',
-            type: 'POST'
-        };
-
-        return new Promise((resolve, reject) => {
-            var jqXHR = $.ajax(request);
-
-            jqXHR.done((data, textStatus, jqXHR) => {
-                resolve({
-                    folders: data.folders.items,
-                    scenarios: data.scenarios.items
-                });
-            });
-
-            jqXHR.fail((data, textStatus, jqXHR) => {
-                reject(data);
-            });
-        });
-    }
-    exportFolder() {}
-    getScenarioEntities(scenarioId, entities) {
-        var self = this;
-        
-        var params = [];
-        for (let i=0;i<entities.length;i++)
-            params.push("name=" + entities[i]);
-        var param = params.join("&");
-        
-        return self.restRequest("scenario/" + scenarioId + "/data/entities" + "?" + param, 'GET');
-    }
-}
 
 // REST API interface for v2 of the REST API (Insight 5)
 class InsightRESTAPI {
@@ -1864,5 +1612,15 @@ class InsightRESTAPI {
                     data[entities[j]] = response.entities[entities[j]].value.toString();
                 return data;
             });
+    }
+    setScenarioParameters(scenarioId, params) {
+        var self = this;
+        var payload = {
+            deltas: [{"entityName":"parameters","dimension":0,"arrayDelta":{"add":[]}}]
+        };
+        for (const [key, value] of Object.entries(params))
+            payload.deltas[0].arrayDelta.add.push({"key":[key],"value":value.toString()});
+
+        return self.restRequest('scenarios/' + scenarioId + '/data', 'PATCH', JSON.stringify(payload));
     }
 }

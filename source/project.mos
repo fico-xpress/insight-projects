@@ -25,6 +25,11 @@
 
   ! Project schema
   public declarations
+    ! test for augmented project information
+    Scalar1: integer
+    Scalar2: integer
+    Scalar3: integer
+  
    !@insight.transform.labels.entity GoalLabels
     Goals: range                            ! 1 - MaximizeValue
                                             ! 2 - MaximizePropensity
@@ -76,6 +81,11 @@
     declarations
       DataRange:string
     end-declarations
+    
+    ! copy the params to the scalars
+    Scalar1:= PARAM1
+    Scalar2:= PARAM2
+    Scalar3:= PARAM3
 
     GoalLabels:: ["Maximize Value", "Maximize Propensity", "Maximize Balanced"]
 

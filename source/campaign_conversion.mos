@@ -23,6 +23,10 @@ model "Campaign Conversion with projects"
   parameters
     NC=1000           ! Number of customers
     NH=3              ! Number of channels (e.g. email, telephone)
+    
+    PARAM1=0
+    PARAM2=0
+    PARAM3=0
   end-parameters
   
   ! scenario types

@@ -131,7 +131,12 @@
     right: 0px;
     color: #00629B;
 }
-
+.card-extra-info {
+    font-size: 40px;
+    width: 30%;
+    display: inline-block;
+    text-align: center;
+}
 
 /* ***** Table layout ***** */
 .project-list {
@@ -144,7 +149,8 @@
     margin-top: -30px;
 }
 .create-new-project {
-    margin-top: 0px;
+    margin-top: 4px;
+    margin-bottom: 6px;
 }
 #newProjectName {
     margin-bottom: 6px;
@@ -188,4 +194,14 @@
     color: white;
     background-color: #00629B;
     padding: 4px;
+}
+/* bootbox fixes */
+.modal-backdrop {
+    opacity: 0 !important;
+}
+.modal {
+    padding-right: 0px !important;
+}
+body {
+    padding-right: 0px !important;
 }

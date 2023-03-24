@@ -92,4 +92,12 @@ li.box a:hover h5, li.box a:hover p {
     text-decoration: none;
 }
 
+.custom-spinner {
+    flex-direction: column;
+    padding-top: 80px;
+    width: 100%;
+    align-content: center;
+    text-align: center;
+    margin-left: -10px;
+}
 

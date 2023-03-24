@@ -16,7 +16,8 @@
 -->
 <vdl version="5">
     <link rel="stylesheet" href="css/manage-projects.css">
-    <script type="text/javascript" src="js/projectframework.js"></script>
+    <script type="text/javascript" src="js/lib/bootbox.all.min.js"></script>
+    <script type="text/javascript" src="js/lib/projectframework.js"></script>
     <script type="text/javascript" src="js/manage.js"></script>
     <vdl-page id="view-manage-projects">
         <project-overlay></project-overlay>
@@ -35,8 +36,9 @@
             <vdl-action-group name="set_all">
                 <vdl-action-set-var var="show" value="all"></vdl-action-set-var>
             </vdl-action-group>
+            
         </vdl-header>
-        <vdl-section heading="Projects" layout="fluid" vdl-if="=scenarios.length === 0">
+        <vdl-section heading="Projects" layout="fluid" vdl-if="=scenarios.length === 0 && ready()">
             <vdl-row>
                 <vdl-column size="12">
                     <vdl-container class="toolbar-container">
@@ -55,7 +57,11 @@
                                 </ul>
                             </div>
                             <div class="card-title"  data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="=project.name"></span></div>
-                            <div class="card-body"   data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"></div>
+                            <div class="card-body"   data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false">
+                             <span class="card-extra-info" vdl-text="=project.attributes.Scalar1"></span>
+                             <span class="card-extra-info" vdl-text="=project.attributes.Scalar2"></span>
+                             <span class="card-extra-info" vdl-text="=project.attributes.Scalar3"></span>
+                            </div>
                             <div class="card-footer" data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="='Owner: ' + project.owner.name"></span><i class="fico-icon-users sharing-icon" vdl-if="=project.shareStatus != 'PRIVATE'" title="Shared"></i></div>
                         </div>
                         <div class="card"  vdl-if="=vars.show === 'all'" vdl-repeat="=project in projectframework.currentProjectFolders()">
@@ -69,7 +75,11 @@
                                 </ul>
                             </div>
                             <div class="card-title"  data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="=project.name"></span></div>
-                            <div class="card-body"   data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"></div>
+                            <div class="card-body"   data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false">
+                                <span class="card-extra-info" vdl-text="=project.attributes.Scalar1"></span>
+                                 <span class="card-extra-info" vdl-text="=project.attributes.Scalar2"></span>
+                                 <span class="card-extra-info" vdl-text="=project.attributes.Scalar3"></span>
+                            </div>
                             <div class="card-footer" data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="='Owner: ' + project.owner.name"></span><i class="fico-icon-users sharing-icon" vdl-if="=project.shareStatus != 'PRIVATE'" title="Shared"></i></div>
                         </div>
                         <div class="new-card" data-bind="click:window.projectframework.createProject.bind(window.projectframework, null), clickBubble: false">
@@ -121,10 +131,10 @@
                         </div>
                         <div class="project-list" vdl-if="=projectframework.currentProjectFolders().length == 0"><span vdl-text="No existing projects."></span></div>
                         <div class="project-controls">
-                            <h4 class="create-new-project"><span vdl-text="Add a Project"></span></h2><input placeholder="Enter a project name..." type="text" id="newProjectName" class="form-control" data-bind="textInput: projectframework.newProjectName">
+                            <h4 class="create-new-project"><span vdl-text="Add a Project"></span></h4><input placeholder="Enter a project name..." type="text" id="newProjectName" class="form-control" data-bind="textInput: projectframework.newProjectName">
                             <div class="project-open-buttons button-holder">
                                 <div class="btn-group pull-right">
-                                    <button vdl-attr="disabled: !projectframework.newProjectName()" id="createProjectButton" class="btn btn-primary create-project-btn" vdl-event="click:projectframework.createProject.bind(projectframework, $('#newProjectName').val())">
+                                    <button vdl-attr="disabled: !projectframework.newProjectName()" id="createProjectButton" class="btn btn-primary create-project-btn" vdl-event="click:projectframework.createProject.bind(projectframework, $('#newProjectName').val(), {'PARAM1': Math.floor(Math.random()*100), 'PARAM2': Math.floor(Math.random()*100), 'PARAM3': Math.floor(Math.random()*100)})">
                                         New Project
                                     </button>
                                     <!-- insight v4 button -->
@@ -142,6 +152,16 @@
                                 </div>
                             </div>
                         </div>
+                    </vdl-container>
+                </vdl-column>
+            </vdl-row>
+        </vdl-section>
+        <vdl-section layout="fluid" vdl-if="=!ready()">
+            <vdl-row>
+                <vdl-column>
+                    <vdl-container class="custom-spinner">
+                        <vdl-spinner></vdl-spinner>
+                        <div class="custom-message" vdl-text="='Initializing...'"></div>
                     </vdl-container>
                 </vdl-column>
             </vdl-row>
