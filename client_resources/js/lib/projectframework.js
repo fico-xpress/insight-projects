@@ -1148,6 +1148,11 @@ class ProjectFramework {
                     break;
             }
 
+            $(document).on("submit", ".bootbox form", function(e) {
+                e.preventDefault();
+                $(".bootbox .btn-primary").click();
+            });
+
             self.confirmDialog = bootbox.dialog({
                 container: parent,
                 title: title,
@@ -1156,7 +1161,7 @@ class ProjectFramework {
                     ok: {
                         label: action.charAt(0).toUpperCase() + action.slice(1),
                         callback: callback,
-                        className: 'btn-primary affirmative'
+                        className: 'btn-primary affirmative bootbox-accept'
                     },
                     cancel: {
                         label: 'Cancel',
