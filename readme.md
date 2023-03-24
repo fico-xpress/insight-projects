@@ -2,7 +2,6 @@
 A small framework that implements a project concept within a FICO Xpress Insight app.
 
 ### Pre-requisites
-FICO Xpress Insight 4 support: version 4.59 or later
 FICO Xpress Insight 5 support: version 5.3 or later
 
 ### Concept
@@ -10,15 +9,17 @@ A project is a managed folder in the app root containing a "project scenario" wh
 The framework is provided as a reference example based on the "campaign conversion" product example. This version of the example shows how to separate out the data model into project and scenario pieces, and how to implement appropriate views for both.
 
 ### Required framework files
-Add the project framework CSS, JavaScript and font files to your project
+Add the project framework CSS, JavaScript and font files to your project.
 <br /><br />
-/client_resources/js/projectframework.js<br />
+/client_resources/js/lib/bootbox.all.min.js<br />
+/client_resources/js/lib/bootstrap.bundle.min.js<br />
+/client_resources/js/lib/projectframework.js<br />
 /client_resources/css/projectframework.css<br />
 /client_resources/css/font.css<br />
 /client_resources/css/fonts
 
 ### Types of view
-The framework implements its own shelf validation and messages. The built in shelf validation should be disabled by declaring all views as not requiring scenarios in the companion file.
+The framework implements its own shelf validation and messages. The standard products shelf validation should be disabled by declaring all views as not requiring scenarios in the companion file.
 
 campaign_conversion.xml:
 ```xml
@@ -45,7 +46,9 @@ manage.vdl:
  <vdl version="5">
     <link rel="stylesheet" href="css/projectframework.css">
     <link rel="stylesheet" href="css/font.css">
-    <script type="text/javascript" src="js/projectframework.js"></script>
+    <script type="text/javascript" src="js/lib/bootbox.all.min.js"></script>
+    <script type="text/javascript" src="js/lib/bootstrap.bundle.js"></script>
+    <script type="text/javascript" src="js/lib/projectframework.js"></script>
 ```
 
 Initialize the framework. Place the following code in a view specific JS file or script block (the configuration will vary per view):
@@ -71,7 +74,9 @@ manage.vdl:
  <vdl version="5">
     <link rel="stylesheet" href="css/projectframework.css">
     <link rel="stylesheet" href="css/font.css">
-    <script type="text/javascript" src="js/projectframework.js"></script>
+    <script type="text/javascript" src="js/lib/bootbox.all.min.js"></script>
+    <script type="text/javascript" src="js/lib/bootstrap.bundle.js"></script>
+    <script type="text/javascript" src="js/lib/projectframework.js"></script>
     <script type="text/javascript" src="js/manage.js"></script>
 ```
  
@@ -241,6 +246,34 @@ Include the following VDL to show a message to the end user when the scenario Pr
     </vdl-row>
 </vdl-section>
 ```
+
+### Waiting for the framework to initialize
+
+During initialization the framework builds a list of existing projects and their attributes. You can wait for this information to be available and then take some action e.g. automatically opening a project. The init() method returns a promise which you can wait on.
+
+```
+insight.ready(function() {
+    projectframework.init()
+        .then(projects => {
+            // wait for the list of projects to be fetched 
+            
+            // and then do something with the information
+            // insight.getView().showInfoMessage("There are " + projects.length + " projects");
+
+            // or here you could also automatically find and open a project instead of showing the page content
+            // projectframework.openProject(projects[0].id)
+        })
+        .catch(err => {
+            insight.getView().showErrorMessage(err);
+        });
+});
+```
+
+### Setting parameters during project create
+
+The method createProject takes a second argument which will be interpeted as a map of model parameters and values. These parameters will be set on the project scenario duriong creation. The example app 
+sets 3 random number parameters on each project. The configuration option "projectAttributes" (see next section) is then used to
+read the values and augment the project list data so that the management view can display on the cards and in the table layout.
 
 
 ### Extra details
