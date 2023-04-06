@@ -195,22 +195,3 @@
     background-color: #00629B;
     padding: 4px;
 }
-/* bootbox fixes */
-.modal-backdrop {
-    opacity: 0 !important;
-}
-.modal {
-    padding-right: 0px !important;
-}
-body {
-    padding-right: 0px !important;
-}
-
-.dropdown-menu li>a {
-    line-height: 26px !important;
-}
-
-.param-col {
-    width: 100px;
-    text-align: right !important;
-}

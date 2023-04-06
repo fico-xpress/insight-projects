@@ -15,7 +15,7 @@
     limitations under the License.
 -->
 <vdl version="5">
-    <script type="text/javascript" src="js/projectframework.js"></script>
+    <script type="text/javascript" src="js/lib/projectframework.js"></script>
     <script type="text/javascript" src="js/report.js"></script>
 
      <vdl-page id="view-scenario-report" vdl-if="=!projectframework.shelfValid() && projectframework.shelfValidationMessage()">

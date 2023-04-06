@@ -1,3 +1,10 @@
 .c9
 .DS_Store
 out
+out*
+.idea*
+node_modules
+package*
+out
+.gitignore
+
