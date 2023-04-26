@@ -46,24 +46,6 @@
                         <div class="toolbar"><span vdl-text="Show: "></span><i class="layout-toggle fico-icon-user" title="My projects" vdl-event="click:actions.set_own"></i><i class="layout-toggle fico-icon-asset-web-service" title="All projects" vdl-event="click:actions.set_all"></i></div>
                     </vdl-container>
                     <vdl-container class="projects-container" vdl-if="=vars.layout=='cards'">
-                        <div class="card"  vdl-if="=vars.show === 'own'" vdl-repeat="=project in projectframework.currentOwnProjectFolders()" >
-                            <div class="card-options"><a class="dropdown-toggle" data-toggle="dropdown"><i class="fico-dots-three-horizontal"></i></a>
-                                <ul class="dropdown-menu dropdown-menu-right">
-                                    <li><a data-bind="click:window.projectframework.renameProject.bind(window.projectframework, project.id)"><span vdl-text="Rename"></span></a></li>
-                                    <li><a data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, project.id)"><span vdl-text="Clone"></span></a></li>
-                                    <li><a data-bind="click:window.projectframework.shareProject.bind(window.projectframework, project.id)"><span vdl-text="Share"></span></a></li>
-                                    <li><a data-bind="click:window.projectframework.exportProject.bind(window.projectframework, project.id)"><span vdl-text="Export"></span></a></li>
-                                    <li><a data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, project.id)"><span vdl-text="Delete"></span></a></li>
-                                </ul>
-                            </div>
-                            <div class="card-title"  data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="=project.name"></span></div>
-                            <div class="card-body"   data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false">
-                             <span class="card-extra-info" vdl-text="=project.Scalar1"></span>
-                             <span class="card-extra-info" vdl-text="=project.Scalar2"></span>
-                             <span class="card-extra-info" vdl-text="=project.Scalar3"></span>
-                            </div>
-                            <div class="card-footer" data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="='Owner: ' + project.owner.name"></span><i class="fico-icon-users sharing-icon" vdl-if="=project.shareStatus != 'PRIVATE'" title="Shared"></i></div>
-                        </div>
                         <div class="card"  vdl-if="=vars.show === 'all'" vdl-repeat="=project in projectframework.currentProjectFolders()">
                             <div class="card-options"><a class="dropdown-toggle" data-toggle="dropdown"><i class="fico-dots-three-horizontal"></i></a>
                                 <ul class="dropdown-menu dropdown-menu-right">
@@ -82,13 +64,31 @@
                             </div>
                             <div class="card-footer" data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="='Owner: ' + project.owner.name"></span><i class="fico-icon-users sharing-icon" vdl-if="=project.shareStatus != 'PRIVATE'" title="Shared"></i></div>
                         </div>
-                        <div class="new-card" data-bind="click:window.projectframework.createProject.bind(window.projectframework, null), clickBubble: false">
+                        <div class="card"  vdl-if="=vars.show === 'own'" vdl-repeat="=project in projectframework.currentOwnProjectFolders()" >
+                            <div class="card-options"><a class="dropdown-toggle" data-toggle="dropdown"><i class="fico-dots-three-horizontal"></i></a>
+                                <ul class="dropdown-menu dropdown-menu-right">
+                                    <li><a data-bind="click:window.projectframework.renameProject.bind(window.projectframework, project.id)"><span vdl-text="Rename"></span></a></li>
+                                    <li><a data-bind="click:window.projectframework.cloneProject.bind(window.projectframework, project.id)"><span vdl-text="Clone"></span></a></li>
+                                    <li><a data-bind="click:window.projectframework.shareProject.bind(window.projectframework, project.id)"><span vdl-text="Share"></span></a></li>
+                                    <li><a data-bind="click:window.projectframework.exportProject.bind(window.projectframework, project.id)"><span vdl-text="Export"></span></a></li>
+                                    <li><a data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, project.id)"><span vdl-text="Delete"></span></a></li>
+                                </ul>
+                            </div>
+                            <div class="card-title"  data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="=project.name"></span></div>
+                            <div class="card-body"   data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false">
+                             <span class="card-extra-info" vdl-text="=project.Scalar1"></span>
+                             <span class="card-extra-info" vdl-text="=project.Scalar2"></span>
+                             <span class="card-extra-info" vdl-text="=project.Scalar3"></span>
+                            </div>
+                            <div class="card-footer" data-bind="click:window.projectframework.openProject.bind(window.projectframework, project.id), clickBubble: false"><span vdl-text="='Owner: ' + project.owner.name"></span><i class="fico-icon-users sharing-icon" vdl-if="=project.shareStatus != 'PRIVATE'" title="Shared"></i></div>
+                        </div>
+                        <div class="new-card" data-bind="click:window.projectframework.createProject.bind(window.projectframework, '', {'PARAM1': Math.floor(Math.random()*100)+1, 'PARAM2': Math.floor(Math.random()*100)+1, 'PARAM3': Math.floor(Math.random()*100)+1}), clickBubble: false">
                             <span class="new-card-icon" vdl-text="+"></span>
                         </div>
                     </vdl-container>
                     <vdl-container class="projects-container" vdl-if="=vars.layout=='table'">
-                        <div class="project-list" vdl-if="=projectframework.currentProjectFolders().length >= 1">
-                            <div id="project_table" class="">
+                        <div class="project-list" vdl-if="=vars.show === 'all'">
+                            <div id="project_table" vdl-if="=projectframework.currentProjectFolders().length >= 1">
                                 <table class="table-main row-hover">
                                     <thead>
                                         <tr>
@@ -101,7 +101,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr vdl-if="=vars.show === 'all'" vdl-repeat="=project in projectframework.currentProjectFolders()" 
+                                        <tr vdl-repeat="=project in projectframework.currentProjectFolders()" 
                                             vdl-event="click:window.projectframework.openProject.bind(window.projectframework, project.id)">
                                             
                                             <td class="displayname" vdl-text="=project.name"></td>
@@ -117,6 +117,26 @@
                                                 <i class="fico-icon-download" data-bind="click:window.projectframework.exportProject.bind(window.projectframework, project.id), clickBubble: false"><vdl-tooltip content="Export Project to Server"></vdl-tooltip></i>
                                                 <i class="fico-icon-trash" data-bind="click:window.projectframework.deleteProject.bind(window.projectframework, project.id), clickBubble: false"><vdl-tooltip content="Delete Project"></vdl-tooltip></i></td>
                                         </tr>
+                                    </tbody>
+                                </table>
+                                <div class="refresh pull-right"><button class="btn btn-secondary" vdl-event="click:projectframework.refreshProjectList.bind(projectframework)">Refresh</button></div>
+                            </div>
+                            <div class="project-list" vdl-if="=projectframework.currentProjectFolders().length == 0"><span vdl-text="No existing projects."></span></div>
+                        </div>
+                        <div class="project-list" vdl-if="=vars.show === 'own'">
+                            <div id="project_table" vdl-if="=projectframework.currentOwnProjectFolders().length >= 1">
+                                <table class="table-main row-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Param 1</th>
+                                            <th>Param 2</th>
+                                            <th>Param 3</th>
+                                            <th>Owner</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
                                         <tr vdl-if="=vars.show === 'own'" vdl-repeat="=project in projectframework.currentOwnProjectFolders()" 
                                             vdl-event="click:window.projectframework.openProject.bind(window.projectframework, project.id)">
                                             
@@ -137,13 +157,13 @@
                                 </table>
                                 <div class="refresh pull-right"><button class="btn btn-secondary" vdl-event="click:projectframework.refreshProjectList.bind(projectframework)">Refresh</button></div>
                             </div>
+                            <div class="project-list" vdl-if="=projectframework.currentOwnProjectFolders().length == 0"><span vdl-text="No existing projects."></span></div>
                         </div>
-                        <div class="project-list" vdl-if="=projectframework.currentProjectFolders().length == 0"><span vdl-text="No existing projects."></span></div>
                         <div class="project-controls">
                             <h4 class="create-new-project"><span vdl-text="Add a Project"></span></h4><input placeholder="Enter a project name..." type="text" id="newProjectName" class="form-control" data-bind="textInput: projectframework.newProjectName">
                             <div class="project-open-buttons button-holder">
                                 <div class="btn-group pull-right">
-                                    <button vdl-attr="disabled: !projectframework.newProjectName()" id="createProjectButton" class="btn btn-primary create-project-btn" vdl-event="click:projectframework.createProject.bind(projectframework, $('#newProjectName').val(), {'PARAM1': Math.floor(Math.random()*100), 'PARAM2': Math.floor(Math.random()*100), 'PARAM3': Math.floor(Math.random()*100)})">
+                                    <button vdl-attr="disabled: !projectframework.newProjectName()" id="createProjectButton" class="btn btn-primary create-project-btn" vdl-event="click:projectframework.createProject.bind(projectframework, $('#newProjectName').val(), {'PARAM1': Math.floor(Math.random()*100)+1, 'PARAM2': Math.floor(Math.random()*100)+1, 'PARAM3': Math.floor(Math.random()*100)+1})">
                                         New Project
                                     </button>
                                     <!-- insight v4 button -->
