@@ -1239,7 +1239,7 @@ class ProjectFramework {
             if (uploadHolder.length > 0) {
                 uploadHolder.remove();
             }
-            parent.append('<div id="hidden-file-upload-holder" style="border: 2px solid red;"><input class="hiddenFileUpload" name="attachment" type="file" /></div>');
+            parent.append('<div id="hidden-file-upload-holder" style="display: none;"><input class="hiddenFileUpload" name="attachment" type="file" /></div>');
             uploadHolder = parent.find('#hidden-file-upload-holder');
 
             var promiseFunctions = {
@@ -1252,7 +1252,7 @@ class ProjectFramework {
             });
 
             uploadHolder.find('.hiddenFileUpload').on('change', ()  => {
-                promiseFunctions.resolve(this.files);
+                promiseFunctions.resolve(uploadHolder.find('.hiddenFileUpload')[0].files);
             });
 
             setTimeout(() => {
