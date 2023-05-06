@@ -165,10 +165,10 @@ describe("Project framework", function () {
         },
         showInfoMessage: function () {},
         withAllScenarios: function () {
-            return window.observer;
+            return window.observerAll;
         },
         withFirstScenario: function () {
-            return window.observer;
+            return window.observerFirst;
         },
         configure: function () {},
         importFromServer: function() {
@@ -177,6 +177,9 @@ describe("Project framework", function () {
             return Promise.resolve(
                 user
             );
+        },
+        getScenarioProperties: function () {
+            return Promise.resolve({});
         }
     };
 
@@ -184,16 +187,30 @@ describe("Project framework", function () {
         jasmine.Ajax.install();
 
         // mock the insight interface
-        window.observer = {
+        window.observerFirst = {
             withEntities: function () {
                 return this;
             },
             notify: function (f) {
-                if (f) f();
                 return this;
             },
             once: function (f) {
-                if (f) f();
+                return this;
+            },
+            withSummaryData: function () {
+                return this;
+            },
+            start: function () {
+            }
+        };
+        window.observerAll = {
+            withEntities: function () {
+                return this;
+            },
+            notify: function (f) {
+                return this;
+            },
+            once: function (f) {
                 return this;
             },
             withSummaryData: function () {
@@ -2027,44 +2044,56 @@ describe("Project framework", function () {
         });
     });
     describe('_initShelfValidation', function () {
-        it("Shall set shelfValid to false for an empty shelf", function () {
+        it("Shall set shelfValid to false for an empty shelf", function (done) {
             project._initShelfValidation.and.callThrough();
             spyOn(project.view, "getScenarioIds").and.returnValue([]);
             spyOn(project, "shelfValid");
             spyOn(project, "shelfValidationMessage");
-            project._initShelfValidation();
-            expect(project.shelfValid).toHaveBeenCalledWith(false);
+            project._initShelfValidation()
+                .then(() => {
+                    expect(project.shelfValid).toHaveBeenCalledWith(false);
+                    done();
+                });
         });
-        it("Shall validate shelf for a project view if the config describes the view as a project view", function () {
+        it("Shall validate shelf for a project view if the config describes the view as a project view", function (done) {
             project._initShelfValidation.and.callThrough();
             spyOn(project, "shelfValid");
             spyOn(project.view, "getScenarioIds").and.returnValue([1, 2, 3]);
             project.config.viewType = "project";
             spyOn(project, "validateShelf");
-            project._initShelfValidation();
-            expect(project.validateShelf.calls.all()[0].args[0]).toEqual("project");
-            expect(project.shelfValid).toHaveBeenCalledWith(true);
+            project._initShelfValidation()
+                .then(() => {
+                    expect(project.validateShelf.calls.all()[0].args[0]).toEqual("project");
+                    expect(project.shelfValid).toHaveBeenCalledWith(true);
+                    done();
+                });
         });
-        it("Shall validate shelf for a scenario view if the config describes the view as a scenario view", function () {
+        it("Shall validate shelf for a scenario view if the config describes the view as a scenario view", function (done) {
             project._initShelfValidation.and.callThrough(); // override beforeAll spy behaviour
             spyOn(project, "shelfValid");
             spyOn(project.view, "getScenarioIds").and.returnValue([1, 2, 3]);
             project.config.viewType = "scenario";
             spyOn(project, "validateShelf");
-            project._initShelfValidation();
-            expect(project.validateShelf.calls.all()[0].args[0]).toEqual("scenario");
-            expect(project.shelfValid).toHaveBeenCalledWith(true);
+            project._initShelfValidation()
+                .then(() => {
+                    expect(project.validateShelf.calls.all()[0].args[0]).toEqual("scenario");
+                    expect(project.shelfValid).toHaveBeenCalledWith(true);
+                    done();
+                });
         });
-        it("Shall show a message and return false if the shelf is invalid", function () {
+        it("Shall show a message and return false if the shelf is invalid", function (done) {
             project._initShelfValidation.and.callThrough(); // override beforeAll spy behaviour
             spyOn(project, "shelfValid");
             spyOn(project, "shelfValidationMessage");
             spyOn(project.view, "getScenarioIds").and.returnValue([1, 2, 3]);
             project.config.viewType = "scenario";
             spyOn(project, "validateShelf").and.returnValue("failed");
-            project._initShelfValidation();
-            expect(project.shelfValid).toHaveBeenCalledWith(false);
-            expect(project.shelfValidationMessage).toHaveBeenCalledWith({text: "failed"});
+            project._initShelfValidation()
+                .then(() => {
+                    expect(project.shelfValid).toHaveBeenCalledWith(false);
+                    expect(project.shelfValidationMessage).toHaveBeenCalledWith({text: "failed"});
+                    done();
+                });
         });
     });
     describe('_initProjectRevisionTracking()', function () {
@@ -2092,6 +2121,9 @@ describe("Project framework", function () {
             spyOn(project.view.withFirstScenario().withEntities().notify(), "start");
             spyOn(project.view.withFirstScenario().withEntities(), "notify").and.callThrough();
             spyOn(project.view.withFirstScenario(), "withEntities").and.callThrough();
+            spyOn(project.view.withAllScenarios().withEntities().notify(), "start");
+            spyOn(project.view.withAllScenarios().withEntities(), "notify").and.callThrough();
+            spyOn(project.view.withAllScenarios(), "withEntities").and.callThrough();
             spyOn(project.schema, "getAllEntities").and.returnValue(["a", "b", "c"]);
         })
         it("should use all entities if 'all' is specified", function () {
@@ -2122,21 +2154,37 @@ describe("Project framework", function () {
             expect(project.view.withFirstScenario().withEntities().notify).not.toHaveBeenCalled();
             expect(project.view.withFirstScenario().withEntities().notify().start).not.toHaveBeenCalled();
         });
-        it("should observe revision changes if there is something on the shelf", function () {
+        it("should handle project revision changes if there are scenarios on the shelf", function () {
             spyOn(project.view, "getScenarioIds").and.returnValue(["1234"]);
-            project.config.projectEntities = [];
+            project.config.projectEntities = ["tracking something"];
+            var entities = project.config.projectEntities;
+            entities = entities.concat([project.config.projectRevisionEntity]);
+
             project._initProjectRevisionTracking();
-            expect(project.view.withFirstScenario().withEntities).toHaveBeenCalledWith([project.config.projectRevisionEntity]);
+
+            expect(project.view.withFirstScenario().withEntities).toHaveBeenCalledWith(entities);
             expect(project.view.withFirstScenario().withEntities().notify).toHaveBeenCalled();
             expect(project.view.withFirstScenario().withEntities().notify().start).toHaveBeenCalled();
+
+            expect(project.view.withAllScenarios().withEntities).toHaveBeenCalledWith([project.config.projectRevisionEntity]);
+            expect(project.view.withAllScenarios().withEntities().notify).toHaveBeenCalled();
+            expect(project.view.withAllScenarios().withEntities().notify().start).toHaveBeenCalled();
         });
-        it("should not observe revision changes if there is nothing on the shelf", function () {
+        it("should not handle revision changes if there is nothing on the shelf", function () {
             spyOn(project.view, "getScenarioIds").and.returnValue([]);
-            project.config.projectEntities = [];
+            project.config.projectEntities = ["tracking something"];
+            var entities = project.config.projectEntities;
+            entities = entities.concat([project.config.projectRevisionEntity]);
+
             project._initProjectRevisionTracking();
-            expect(project.view.withFirstScenario().withEntities).not.toHaveBeenCalled();
-            expect(project.view.withFirstScenario().withEntities().notify).not.toHaveBeenCalled();
-            expect(project.view.withFirstScenario().withEntities().notify().start).not.toHaveBeenCalled();
+
+            expect(project.view.withFirstScenario().withEntities).toHaveBeenCalledWith(entities);
+            expect(project.view.withFirstScenario().withEntities().notify).toHaveBeenCalled();
+            expect(project.view.withFirstScenario().withEntities().notify().start).toHaveBeenCalled();
+
+            expect(project.view.withAllScenarios().withEntities).not.toHaveBeenCalledWith([project.config.projectRevisionEntity]);
+            expect(project.view.withAllScenarios().withEntities().notify).not.toHaveBeenCalled();
+            expect(project.view.withAllScenarios().withEntities().notify().start).not.toHaveBeenCalled();
         });
     });
     describe('_handleProjectRevisionChangeNotification()', function () {

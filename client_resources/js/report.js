@@ -17,8 +17,14 @@
 /* global ProjectFramework */
 var projectframework = new ProjectFramework(
     {
-        viewType: "scenario",    // requires project and scenario validation
-        defaultView: 'Data'     // the view that Open Project navigates to
+        viewType: "scenario",        // requires project and scenario validation
+        defaultView: 'Data',        // the view that Open Project navigates to
+        projectEntities: [          // list of entities that if edited should increment the project revision
+            "CustomerName",
+            "ConversionValue",
+            "CustomerPropensity",
+            "RatioBalance"
+        ]
     }
 );
 insight.ready(function() {

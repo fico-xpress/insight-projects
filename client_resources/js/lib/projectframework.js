@@ -906,41 +906,50 @@ class ProjectFramework {
     _initShelfValidation() {
         var self = this;
         // if the shelf is empty its not valid
-        if (self.view.getScenarioIds().length === 0) {
+        var shelf = self.view.getScenarioIds();
+        if (shelf.length === 0) {
             self.shelfValidationMessage({
                 text: 'There is no active project. Please create or open a project.',
                 showNav: true,
             });
             self.shelfValid(false);
+            return Promise.resolve();
         } else {
             // shelf validation
-            self.view
-                .withAllScenarios()
-                .withSummaryData()
-                .once(scenarios => {
-                    var msg;
-                    if (self.config.viewType.toLowerCase() === "project")
-                        msg = self.validateShelf('project', scenarios);
-                    else if (self.config.viewType.toLowerCase() === "scenario")
-                        msg = self.validateShelf('scenario', scenarios);
-
-                    // else no validation required
-                    if (msg) {
-                        self.shelfValidationMessage({
-                            text: msg
-                        });
-                        self.shelfValid(false);
-                    } else {
-                        self.shelfValidationMessage();
-                        self.shelfValid(true);
-
-                        // its a valid shelf so save it
-                        self._saveShelf();
-
-                        self._initProjectRevisionTracking();
-                    }
+            // fetch the scenario properties directly, if we use an observer then the scenarios would be forced to active
+            var promises = [];
+            var scenarios = [];
+            for(let i=0;i<shelf.length;i++) {
+                var promise = self.view.getScenarioProperties(i)
+                .then(scenario => {
+                    scenarios[i] = scenario;
                 })
-                .start();
+                promises.push(promise);
+            }
+            return Promise.all(promises)
+            .then(() => {
+                var msg;
+                if (self.config.viewType.toLowerCase() === "project")
+                    msg = self.validateShelf('project', scenarios);
+                else if (self.config.viewType.toLowerCase() === "scenario")
+                    msg = self.validateShelf('scenario', scenarios);
+
+                // else no validation required
+                if (msg) {
+                    self.shelfValidationMessage({
+                        text: msg
+                    });
+                    self.shelfValid(false);
+                } else {
+                    self.shelfValidationMessage();
+                    self.shelfValid(true);
+
+                    // its a valid shelf so save it
+                    self._saveShelf();
+
+                    self._initProjectRevisionTracking();
+                }
+            });
         }
     }
     _initProjectRevisionTracking() {
@@ -953,7 +962,7 @@ class ProjectFramework {
         else
             entities = self.config.projectEntities;
 
-        // if there are entities that the project revision is impacted by
+        // if we are tracking at least one entity dependency
         if (entities.length > 0) {
             // make sure we get the project revision too
             entities = entities.concat([self.config.projectRevisionEntity]);
@@ -962,19 +971,19 @@ class ProjectFramework {
                 .withEntities(entities)
                 .notify(self._handleProjectEntityChangeNotification.bind(self))
                 .start();
-        };
 
-        // do a revision check and collate a message if inconsistent
-        // project revision is an incrementing randomly seeded number
-        // newly loaded scenarios default to zero
-        // a scenario is dirty when its revision is not zero and not the same as the project
-        // but only if there is at least one scenairo on the shelf, to avoid a built in warning about requiring scenarios
-        if (self.view.getScenarioIds().length > 0)
-            self.view
-            .withAllScenarios()
-            .withEntities([self.config.projectRevisionEntity])
-            .notify(self._handleProjectRevisionChangeNotification.bind(self))
-            .start();
+            // do a revision check and collate a message if inconsistent
+            // project revision is an incrementing randomly seeded number
+            // newly loaded scenarios default to zero
+            // a scenario is dirty when its revision is not zero and not the same as the project
+            // but only if there is at least one scenario on the shelf, to avoid a built in warning about requiring scenarios
+            if (self.view.getScenarioIds().length > 0)
+                self.view
+                .withAllScenarios()
+                .withEntities([self.config.projectRevisionEntity])
+                .notify(self._handleProjectRevisionChangeNotification.bind(self))
+                .start();
+        }
     }
     _handleProjectEntityChangeNotification(scenario) {
         var self = this;
