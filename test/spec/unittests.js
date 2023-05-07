@@ -375,12 +375,13 @@ describe("Project framework", function () {
                 .catch(done.fail);
         });
         it("Should show an error if the project scenario doesnt exist", function (done) {
-            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.reject());
+            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve());
             spyOn(project, "_getProjectFolderObject").and.returnValue(existingFolder);
 
             project.openProject()
                 .then(done.fail)
                 .catch(function () {
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('This doesn\'t look like a project folder.');
                     expect(project.view.showErrorMessage).toHaveBeenCalledWith('Failed to open project "existing project".');
                     done();
                 });
@@ -550,10 +551,10 @@ describe("Project framework", function () {
             spyOn(project.dom, "showConfirmationDialog");
             spyOn(project, "currentProjectFolders").and.returnValue([existingFolder]);
             spyOn(project, "_getProjectFolderObject").and.returnValue(existingFolder);
-            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve(existingProjectScenario));
         });
 
         it("Should correctly identify an existing project shared PRIVATE", function (done) {
+            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve(existingProjectScenario));
             existingFolder.shareStatus = "PRIVATE";
             existingProjectScenario.shareStatus = "PRIVATE";
             project.shareProject(existingFolder.id)
@@ -564,6 +565,7 @@ describe("Project framework", function () {
                 .catch(done.fail)
         });
         it("Should correctly identify an existing project shared as SHARE_READONLY", function (done) {
+            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve(existingProjectScenario));
             existingFolder.shareStatus = "READONLY";
             existingProjectScenario.shareStatus = "READONLY";
             project.shareProject(existingFolder.id)
@@ -574,6 +576,7 @@ describe("Project framework", function () {
                 .catch(done.fail)
         });
         it("Should correctly identify an existing project shared as SHARE_PROJECTREADONLY", function (done) {
+            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve(existingProjectScenario));
             existingFolder.shareStatus = "FULLACCESS";
             existingProjectScenario.shareStatus = "READONLY";
             project.shareProject(existingFolder.id)
@@ -584,6 +587,7 @@ describe("Project framework", function () {
                 .catch(done.fail)
         });
         it("Should correctly identify an existing project shared as SHARE_FULL", function (done) {
+            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve(existingProjectScenario));
             existingFolder.shareStatus = "FULLACCESS";
             existingProjectScenario.shareStatus = "FULLACCESS";
             project.shareProject(existingFolder.id)
@@ -594,6 +598,7 @@ describe("Project framework", function () {
                 .catch(done.fail);
         });
         it("Should not show an error for an invalid project share status", function (done) {
+            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve(existingProjectScenario));
             existingFolder.shareStatus = "PRIVATE";
             existingProjectScenario.shareStatus = "FULLACCESS";
             project.shareProject(existingFolder.id)
@@ -602,6 +607,16 @@ describe("Project framework", function () {
                     done();
                 })
                 .catch(done.fail);
+        });
+        it("Should show an error if the project scenario doesnt exist", function (done) {
+            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve());
+
+            project.shareProject(1234)
+                .then(done.fail)
+                .catch(function () {
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('This doesn\'t look like a project folder.');
+                    done();
+                });
         });
 
     });
@@ -613,11 +628,13 @@ describe("Project framework", function () {
         it("Should get the list of existing project folders with V2 interface", function (done) {
             var spy = spyOn(project, "currentProjectFolders");
             spyOn(project.api, "getVersion").and.returnValue(2);
-            spyOn(project.api, "getProjects").and.returnValue(Promise.resolve([_.cloneDeep(rootChildren[0]), _.cloneDeep(rootChildren[2])]));
+            spyOn(project.api, "getRootFolders").and.returnValue(Promise.resolve([_.cloneDeep(rootChildren[0]), _.cloneDeep(rootChildren[2])]));
+            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve(scenarios[0]));
+            project.config.projectAttributes = [];
 
             project._getProjects()
                 .then(function (response) {
-                    expect(project.api.getProjects).toHaveBeenCalledWith(project.appId);
+                    expect(project.api.getRootFolders).toHaveBeenCalledWith(project.appId);
 
                     // mock up the expected user name resolution
                     response[0].owner = {name: "Administrator User"};
@@ -630,7 +647,7 @@ describe("Project framework", function () {
                 .catch(done.fail)
         });
         it("Should show an error when it fails to get the list of folders", function (done) {
-            spyOn(project.api, "getProjects").and.returnValue(Promise.reject());
+            spyOn(project.api, "getRootFolders").and.returnValue(Promise.reject());
 
             project._getProjects()
                 .then(done.fail)
@@ -647,14 +664,14 @@ describe("Project framework", function () {
 
             var spy = spyOn(project, "currentProjectFolders");
             spyOn(project.api, "getVersion").and.returnValue(2);
-            spyOn(project.api, "getProjects").and.returnValue(Promise.resolve(_.cloneDeep(projects)));
+            spyOn(project.api, "getRootFolders").and.returnValue(Promise.resolve(_.cloneDeep(projects)));
             spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve(scenarios[0]));
             spyOn(project.api, "getScenarioEntities").and.returnValue(Promise.resolve(entities));
 
             project.config.projectAttributes = ["attrib1", "attrib2"];
             project._getProjects()
                 .then(function (response) {
-                    expect(project.api.getProjects).toHaveBeenCalledWith(project.appId);
+                    expect(project.api.getRootFolders).toHaveBeenCalledWith(project.appId);
                     expect(project._getProjectScenarioForFolder).toHaveBeenCalledWith(projects[0].id);
                     expect(project._getProjectScenarioForFolder).toHaveBeenCalledWith(projects[1].id);
                     expect(response[0].attrib1).toEqual(entities.attrib1);
@@ -868,7 +885,6 @@ describe("Project framework", function () {
             project._getProjectScenarioForFolder()
                 .then(done.fail)
                 .catch(function () {
-                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('Missing folder id.');
                     done();
                 });
         });
@@ -881,12 +897,11 @@ describe("Project framework", function () {
                 })
                 .catch(done.fail);
         });
-        it("Should reject if project scenario doesnt exist for project", function (done) {
+        it("Should resolve to undefined if project scenario doesnt exist for project", function (done) {
             spyOn(project.api, "getChildren").and.returnValue(Promise.resolve([]));
             project._getProjectScenarioForFolder(existingFolder.id)
-                .then(done.fail)
-                .catch(function () {
-                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('This doesn\'t look like a project folder.');
+                .then(function (returns) {
+                    expect(returns).toEqual(undefined);
                     done();
                 });
         });
@@ -899,15 +914,14 @@ describe("Project framework", function () {
                 })
                 .catch(done.fail);
         });
-        it("Should reject if we dont find it", function (done) {
+        it("Should resolve to undefined if we dont find it", function (done) {
             var temp = _.cloneDeep(children);
             temp[1].scenarioType = "SCENARIO"; // no PROJECT type in the array now
             spyOn(project.api, "getChildren").and.returnValue(Promise.resolve(temp));
             project._getProjectScenarioForFolder(existingFolder.id)
-                .then(done.fail)
-                .catch(function () {
-                    expect().nothing();
-                    done(); // expected to not succeed
+                .then(function (returns) {
+                    expect(returns).toEqual(undefined);
+                    done();
                 });
         });
         it("Should throw error if the request to list children fails", function (done) {
@@ -1035,6 +1049,21 @@ describe("Project framework", function () {
                 .then(done.fail)
                 .catch(function () {
                     var msg = 'Failed to clone project \"' + existingFolder.name + '\". No changes were made.';
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith(msg);
+                    done();
+                });
+        });
+        it("Should show an error message when it fails to find the project scenario to copy", function (done) {
+            spyOn(project, "currentProjectFolders").and.returnValue([]);
+            spyOn(project.api, "createRootFolder").and.returnValue(Promise.resolve(clonedFolder));
+            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve());
+            spyOn(project.api, "deleteFolder").and.returnValue(Promise.resolve());
+
+            project._cloneFolderAndProjectScenario(existingFolder.id, cloneProjectName)
+                .then(done.fail)
+                .catch(function () {
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('This doesn\'t look like a project folder.');
+                    var msg = 'Failed to clone project \"' + existingFolder.name + '\". Changes were rolled back.';
                     expect(project.view.showErrorMessage).toHaveBeenCalledWith(msg);
                     done();
                 });
@@ -1412,6 +1441,16 @@ describe("Project framework", function () {
                     expect(spy.calls.all()[1].args[1]).toEqual(existingProjectScenario.name);
 
                     expect(project.view.showErrorMessage).toHaveBeenCalledWith("Failed to rename the project folder but could not roll back action. To correct this error state please rename your project again.");
+                    done();
+                });
+        });
+        it("Should show an error if it fails to find th eproject scenario", function (done) {
+            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve());
+
+            project._renameFolderAndProjectScenario(existingFolder.id, newProjectName)
+                .then(done.fail)
+                .catch(function (error) {
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('This doesn\'t look like a project folder.');
                     done();
                 });
         });
@@ -2401,7 +2440,7 @@ describe("Project framework", function () {
             expect(project._shareProject).toHaveBeenCalledWith(id, shareMode);
         });
     });
-    describe("_shareStatus()", function () {
+    describe("_shareProject()", function () {
         var folder = {
             id: "1234",
             shareStatus: "PREVIOUS"
@@ -2554,6 +2593,17 @@ describe("Project framework", function () {
                 .catch(function () {
                     expect(project.api.shareScenario).toHaveBeenCalledWith(scenario.id, "PREVIOUS");
                     expect(project.view.showErrorMessage).toHaveBeenCalledWith("Failed to change share status for project folder but could not rollback. To correct this error state please set the share status directly.");
+                    done();
+                })
+        });
+        it("Should show a message if it fails to find the project scenario", function (done) {
+            spyOn(project, "_getProjectFolderObject").and.returnValue(folder);
+            spyOn(project, "_getProjectScenarioForFolder").and.returnValue(Promise.resolve());
+
+            project._shareProject(folder.id, "SHARE_PRIVATE")
+                .then(done.fail)
+                .catch(function () {
+                    expect(project.view.showErrorMessage).toHaveBeenCalledWith('This doesn\'t look like a project folder.');
                     done();
                 })
         });
@@ -2905,7 +2955,7 @@ describe("Project framework", function () {
                     });
             });
         });
-        describe('InsightRESTAPI.getProjects()', function () {
+        describe('InsightRESTAPI.getRootFolders()', function () {
             var children = {
                 content:
                     [
@@ -2918,15 +2968,15 @@ describe("Project framework", function () {
                     ]
             };
             var projects = [
-                {objectType: "FOLDER", name: "a"},
-                {objectType: "FOLDER", name: "b"},
                 {objectType: "FOLDER", name: "C"},
                 {objectType: "FOLDER", name: "c"},
+                {objectType: "FOLDER", name: "a"},
+                {objectType: "FOLDER", name: "b"},
             ];
 
-            it("Should return a sorted, filtered list of projects", function (done) {
+            it("Should return the list of root folders", function (done) {
                 spyOn(project.api, "restRequest").and.returnValue(Promise.resolve(children));
-                project.api.getProjects(project.appId)
+                project.api.getRootFolders(project.appId)
                     .then(function (response) {
                         expect(response).toEqual(projects);
                         done();

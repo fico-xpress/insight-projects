@@ -81,6 +81,11 @@ class ProjectFramework {
 
         return self._getProjectScenarioForFolder(projectFolderId)
             .then(projectScenario => {
+                // check we were successful in finding a valid project scenario
+                if (!projectScenario) {
+                    self.view.showErrorMessage('This doesn\'t look like a project folder.');
+                    throw new Error;
+                }
                 return self._moveToProject(projectScenario);
             })
             .catch(() => {
@@ -180,6 +185,12 @@ class ProjectFramework {
 
         return self._getProjectScenarioForFolder(projectFolderId)
             .then(projectScenario => {
+                // check we were successful in finding a valid project scenario
+                if (!projectScenario) {
+                    self.view.showErrorMessage('This doesn\'t look like a project folder.');
+                    throw new Error;
+                }
+                
                 // possible share combinations
                 var folderTargetShare = projectFolder.shareStatus;
                 var projectTargetShare = projectScenario.shareStatus;
@@ -219,51 +230,59 @@ class ProjectFramework {
 
     _getProjects() {
         var self = this;
-
-        return self.api.getProjects(self.appId)
+        
+        var projects = [];
+        return self.api.getRootFolders(self.appId)
             // then fetch any additional attributes for each project
-            .then(projects => {
-                if (self.config.projectAttributes && self.config.projectAttributes.length > 0) {
-                    var attrFetches = [];
-                    // for each project
-                    for (let i = 0; i < projects.length; i++) {
-                        // get the project scenario id
-                        var promise = self._getProjectScenarioForFolder(projects[i].id)
-                            .then(scenario => {
-                                return self.api.getScenarioEntities(scenario.id, self.config.projectAttributes)
-                            })
-                            .then(attribs => {
-                                _.merge(projects[i], attribs);
-                                return projects[i];
-                            });
-                        attrFetches.push(promise);
-                    }
-
-                    // wait for all the queries and return the augmented project list
-                    return Promise.all(attrFetches)
-                        .then(() => projects);
+            .then(folders => {
+                var promises = [];
+                for (let i = 0; i < folders.length; i++) {
+                    let folder = folders[i];
+                    // try to get the project scenario id
+                    var promise = self._getProjectScenarioForFolder(folder.id)
+                        .then(scenario => {
+                            // if we found the project scenario
+                            if (scenario)
+                                // if we need to augment the scenario data
+                                if (self.config.projectAttributes && self.config.projectAttributes.length > 0)
+                                    return self.api.getScenarioEntities(scenario.id, self.config.projectAttributes)
+                                        .then(attribs => {
+                                            _.merge(folder, attribs);
+                                            projects.push(folder);
+                                        });
+                                else
+                                    projects.push(folder);
+                        });
+                    promises.push(promise);
                 }
-                else
-                    return projects;
-
-            })
-            // then compute the list of projects owned by the current user
-            .then(projects => {
-                return self.view.getUser()
-                .then(currentUser => {
-                    var owned = [];
-                    for (var i = 0; i < projects.length; i++)
-                        if (projects[i].owner.name === currentUser.getFullName())
-                            owned.push(projects[i]);
-
-                    // and update the lists
-                    self.currentProjectFolders([]);
-                    self.currentProjectFolders(projects);
-                    self.currentOwnProjectFolders([]);
-                    self.currentOwnProjectFolders(owned);
+                // wait for all the fetches to complete
+                return Promise.all(promises)
+                .then(() => {
+                    // sort the projects case insensitive
+                    projects.sort((a, b) => {
+                        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+                    });
 
                     return projects;
                 })
+                // then compute the list of projects owned by the current user
+                .then(projects => {
+                    return self.view.getUser()
+                    .then(currentUser => {
+                        var owned = [];
+                        for (var i = 0; i < projects.length; i++)
+                            if (projects[i].owner.name === currentUser.getFullName())
+                                owned.push(projects[i]);
+    
+                        // and update the lists
+                        self.currentProjectFolders([]);
+                        self.currentProjectFolders(projects);
+                        self.currentOwnProjectFolders([]);
+                        self.currentOwnProjectFolders(owned);
+    
+                        return projects;
+                    });
+                });
             })
             .catch(error => {
                 self.view.showErrorMessage('Unexpected error fetching projects list');
@@ -285,6 +304,9 @@ class ProjectFramework {
         insight.openView(this.config.defaultView);
     }
     _getProjectScenarioForFolder(folderId) {
+        // resolves the project scenario or undefined
+        // rejects on invalid folderid
+        
         var self = this;
 
         if (!folderId) {
@@ -297,13 +319,15 @@ class ProjectFramework {
                 for (var i = 0; i < children.length; i++)
                     if (children[i].scenarioType === self.config.projectScenarioType)
                         found = children[i];
-                if (found)
+                return found;
+               /* if (found)
                     return found;
-                else
-                    throw new Error;
+                 else
+                throw new Error;
             }).catch(() => {
                 self.view.showErrorMessage('This doesn\'t look like a project folder.');
                 return Promise.reject();
+                */
             });
     }
     _validateProjectName(newProjectName) {
@@ -436,7 +460,12 @@ class ProjectFramework {
             })
             // copy the project scenario into the new folder as the new actual name
             .then(projectScenario => {
-                return self.api.cloneScenario(projectScenario.id, newFolder, actualNewName);
+                if (projectScenario)
+                    return self.api.cloneScenario(projectScenario.id, newFolder, actualNewName);
+                else {
+                    self.view.showErrorMessage('This doesn\'t look like a project folder.');
+                    throw new Error;
+                }
             })
             // all good
             .then(() => {
@@ -522,7 +551,14 @@ class ProjectFramework {
     _renameFolderAndProjectScenario(projectFolderId, newName) {
         var self = this;
 
-        return self._getProjectScenarioForFolder(projectFolderId).then(projectScenario =>  {
+        return self._getProjectScenarioForFolder(projectFolderId)
+        .then(projectScenario =>  {
+            // check we were successful in finding a valid project scenario
+            if (!projectScenario) {
+                self.view.showErrorMessage('This doesn\'t look like a project folder.');
+                throw new Error;
+            }
+            
             var previousName = projectScenario.name; // for rollback
 
             // try to rename the project scenario inside first
@@ -583,27 +619,33 @@ class ProjectFramework {
 
         return self._getProjectScenarioForFolder(projectFolderId)
             .then(projectScenario => {
-                var previousMode = projectScenario.shareStatus;
+                // check we were successful in finding a valid project scenario
+            if (!projectScenario) {
+                self.view.showErrorMessage('This doesn\'t look like a project folder.');
+                throw new Error;
+            }
+            
+            var previousMode = projectScenario.shareStatus;
 
-                return self.api.shareScenario(projectScenario.id, projectTargetShare)
-                    .then(() => {
-                        return self.api.shareFolder(projectFolderId, folderTargetShare)
-                            .then(() => {
-                                // invalidate and refresh the information we have cached for the project
-                                self._getProjects();
-                                self.view.showInfoMessage('Project share status updated');
-                            }).catch(() => {
-                                var errormsg = "Failed to change share status for project folder but could not rollback. To correct this error state please set the share status directly.";
-                                return self.api.shareScenario(projectScenario.id, previousMode)
-                                    .then(() => {
-                                        errormsg = "Failed to change share status for project folder. Action rolled back.";
-                                        throw new Error;
-                                    }).catch(() => {
-                                        self.view.showErrorMessage(errormsg);
-                                        return Promise.reject();
-                                    });
-                            });
-                    });
+            return self.api.shareScenario(projectScenario.id, projectTargetShare)
+                .then(() => {
+                    return self.api.shareFolder(projectFolderId, folderTargetShare)
+                        .then(() => {
+                            // invalidate and refresh the information we have cached for the project
+                            self._getProjects();
+                            self.view.showInfoMessage('Project share status updated');
+                        }).catch(() => {
+                            var errormsg = "Failed to change share status for project folder but could not rollback. To correct this error state please set the share status directly.";
+                            return self.api.shareScenario(projectScenario.id, previousMode)
+                                .then(() => {
+                                    errormsg = "Failed to change share status for project folder. Action rolled back.";
+                                    throw new Error;
+                                }).catch(() => {
+                                    self.view.showErrorMessage(errormsg);
+                                    return Promise.reject();
+                                });
+                        });
+                });
             }).catch(() => {
                 self.view.showErrorMessage("Failed to change the project share status.");
                 return Promise.reject();
@@ -1386,11 +1428,11 @@ class InsightRESTAPI {
             });
         });
     }
-    getProjects(appId) {
+    getRootFolders(appId) {
         var self = this;
         return self.restRequest('apps/' + appId + '/children?page=0&size=9999', 'GET')
             .then(children => {
-                var projects = [];
+                var folders = [];
                 children = children.content; // strip away the container
 
                 // filter out scenarios, projects are root folders
@@ -1398,16 +1440,11 @@ class InsightRESTAPI {
                     var child = children[i];
                     // mask out those starting with underscore
                     if (child.objectType === 'FOLDER' && !(child.name.indexOf("_") === 0)) {
-                        projects.push(child);
+                        folders.push(child);
                     }
                 };
 
-                // sort case insensitive
-                projects.sort((a, b) => {
-                    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-                });
-
-                return projects;
+                return folders;
             });
     }
     getChildren(folderId) {
