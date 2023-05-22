@@ -19,6 +19,7 @@
 /* global $         */
 /* global _         */
 
+/* version 6.1 */
 class ProjectFramework {
     /*
     PUBLIC INTERFACE
@@ -42,7 +43,8 @@ class ProjectFramework {
                 viewType: "", // type of the current view. manage | project | scenario | null (none of those)
                 projectEntities: [], // list of project entities that impact the project revision for the current view. "all" or [entity names]
                 projectRevisionEntity: "ProjectRevision", // the entity storing the project revision,
-                projectAttributes: [] // list of entities that are fetched to augment project object for management view
+                projectAttributes: [],  // list of entities that are fetched to augment project object for management view
+                lastUsed: true         // save the last shelf config for a project and restore it next time
             }
         });
         $.extend(this.config, userconfig);
@@ -987,7 +989,8 @@ class ProjectFramework {
                     self.shelfValid(true);
 
                     // its a valid shelf so save it
-                    self._saveShelf();
+                    if (self.config.lastUsed)
+                        self._saveShelf();
 
                     self._initProjectRevisionTracking();
                 }
@@ -1317,7 +1320,6 @@ class ProjectFramework {
         },
     }
 };
-
 
 /*
 Custom overlay for during custom orchestrated actions like import project
